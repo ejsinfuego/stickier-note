@@ -1,0 +1,117 @@
+
+
+.sticky-note {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  font-family: inherit;
+}
+
+.note-header {
+  padding: 8px;
+  background-color: rgba(0, 0, 0, 0.05);
+  user-select: none;
+  -webkit-app-region: drag; /* This is the key property for dragging */
+}
+
+.note-controls button,
+.note-controls select {
+  -webkit-app-region: no-drag;
+}
+
+.note-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.color-options {
+  display: flex;
+  gap: 6px;
+}
+
+.text-color-picker {
+  background-color: rgba(255, 255, 255, 0.7);
+}
+
+.control-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 0 8px;
+  border-radius: 50%;
+}
+
+.color-picker {
+  background-color: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+  padding: 2px 4px;
+  font-size: 12px;
+  color: black;
+}
+
+.note-content {
+  flex: 1;
+  background-color: transparent;
+  border: none;
+  padding: 12px;
+  font-size: 16px;
+  line-height: 1.5;
+  resize: none; 
+  outline: none;
+  font-family: inherit;
+  min-height: 150px; 
+  overflow-y: auto; /
+}
+
+.note-footer {
+  padding: 8px 12px;
+  background-color: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.6);
+
+}
+
+.opacity-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.click-through-label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  background-color: transparent;
+}
+
+
+.note-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.note-content::-webkit-scrollbar-thumb {
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+}
+
+.note-content::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(0, 0, 0, 0.3);
+}
