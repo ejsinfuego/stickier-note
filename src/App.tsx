@@ -9,7 +9,39 @@ function App() {
   const [isClickThrough] = useState(false);
   const [noteColor, setNoteColor] = useState('#FFFF88');
   const [textColor, setTextColor] = useState('#000000');
-  
+  const [textContent, setTextContent] = useState('');
+
+  interface NoteData {
+    note: string;
+    noteColor: string;
+    textColor: string;
+    textContent: string;
+  }
+
+  useEffect(() => {
+    if (note === '' && noteColor === '#FFFF88' && textColor === '#000000') return;
+    const noteData = {
+      note,
+      noteColor,
+      textColor,
+      textContent
+    };
+    
+    ipcRenderer.invoke('save-note', noteData);
+  }, [note, noteColor, textColor, textContent]);
+
+
+  useEffect(() => {
+    ipcRenderer.invoke('get-note').then((noteData: NoteData) => {
+      if (noteData) {
+        setNote(noteData.note || '');
+        setNoteColor(noteData.noteColor || '#FFFF88');
+        setTextColor(noteData.textColor || '#000000');
+        setTextContent(noteData.textContent || '');
+      }
+    });
+  }, []);
+
   useEffect(() => {
     ipcRenderer.send('set-opacity', opacity);
   }, [opacity]);
@@ -25,12 +57,20 @@ function App() {
     >
       <div className="note-header">
         <div className="note-controls">
+          <div className="button-group">
           <button 
             className="control-btn close-btn"
-            onClick={() => window.close()}
+          onClick={() => window.close()}
           >
             ×
           </button>
+          <button className='control-btn minimize-btn' 
+          onClick={() =>
+            ipcRenderer.send('minimize-window')
+          }>
+            {' —'}
+          </button>
+          </div>
           <div className="color-options">
             <select 
               className="color-picker"
@@ -43,11 +83,14 @@ function App() {
               <option value="#DCFF7E">Green</option>
             </select>
             
-            {/* Add text color selector */}
+          
             <select
               className="color-picker text-color-picker"
               value={textColor}
-              onChange={(e) => setTextColor(e.target.value)}
+              onChange={(e) => {
+                setTextContent(e.target.value)
+                setTextColor(e.target.value)
+              }}
             >
               <option value="#000000">Black</option>
               <option value="#0000FF">Blue</option>
@@ -78,9 +121,7 @@ function App() {
             step="0.1"
             value={opacity}
             onChange={handleOpacityChange}
-            onMouseOver={
-              (e) => e.currentTarget.style.display = 'block'
-            }
+          
           />
         </div>
         

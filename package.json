@@ -1,21 +1,110 @@
 {
-  "name": "stickier-notes",
+  "name": "stickier-note",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
   "main": "dist/main.js",
   "types": "./index.d.ts",
+  "description": "A minimal sticky note application that's like stickier",
+  "author": {
+    "name": "Ej Sinfuego",
+    "email": "edzeljohnsinfuego@gmail.com",
+    "url": "https://ejsinfuego.com"
+  },
+  "icon": "assets/note",
+  "license": "MIT",
+  "homepage": "https://github.com/ejsinfuego/stickier-note",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ejsinfuego/stickier-note"
+  },
   "scripts": {
-    "dev": "tsc main.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "tsc -b && vite build",
+    "clean": "rimraf dist",
+    "dev": "tsc main.ts database.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "npm run clean && tsc main.ts database.ts --outDir dist && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "electron-build": "electron-builder"
+    "package": "npm run build && electron-builder"
+  },
+  "build": {
+    "appId": "com.example.stickier-note",
+    "copyright": "Copyright 2025 Ej Sinfuego",
+    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "win": {
+      "target": "nsis",
+      "icon": "src/assets/note.ico"
+    },
+    "productName": "Stickier Note",
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Stickier Note"
+    },
+    "files": [
+      "dist/**/*",
+      "package.json",
+      "node_modules/**/*"
+    ],
+    "extraFiles": [
+      {
+        "from": "assets",
+        "to": "assets"
+      }
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets"
+      },
+      {
+        "from": "dist/database.js",
+        "to": "database.cjs"
+      },
+      {
+        "from": "node_modules",
+        "to": "node_modules"
+      }
+    ],
+    "asarUnpack": [
+      "node_modules/nedb",
+      "node_modules/underscore"
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "ejsinfuego",
+      "repo": "stickier-note",
+      "releaseType": "draft"
+    },
+    "compression": "store",
+    "directories": {
+      "buildResources": "assets"
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64"
+          ]
+        }
+      ]
+    }
   },
   "dependencies": {
-    "electron-store": "^10.0.1",
+    "nedb": "^1.8.0",
     "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "uuid": "^11.1.0"
+    "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

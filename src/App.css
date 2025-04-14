@@ -1,4 +1,10 @@
-
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent !important;
+  overflow: hidden;
+  min-width: 300px;
+}
 
 .sticky-note {
   width: 100vw;
@@ -38,6 +44,14 @@
   background-color: rgba(255, 255, 255, 0.7);
 }
 
+.minimize-btn {
+  margin: 0 0 0 auto;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  property: none;
+  border: none;
+  -webkit-app-region: no-drag;
+}
+
 .control-btn {
   background: none;
   border: none;
@@ -45,7 +59,7 @@
   font-size: 18px;
   font-weight: bold;
   padding: 0 8px;
-  border-radius: 50%;
+  border-radius: 20%;
 }
 
 .color-picker {
@@ -68,7 +82,7 @@
   outline: none;
   font-family: inherit;
   min-height: 150px; 
-  overflow-y: auto; /
+  overflow-y: auto;
 }
 
 .note-footer {
@@ -94,15 +108,6 @@
   gap: 4px;
   cursor: pointer;
 }
-
-body {
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: transparent;
-}
-
-
 .note-content::-webkit-scrollbar {
   width: 8px;
 }

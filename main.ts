@@ -1,64 +1,117 @@
-import { app, BrowserWindow, ipcMain, screen } from "electron";
+// import { app, BrowserWindow, ipcMain, screen } from "electron";
+// import { getNote, saveNote } from "./database";
 
-let mainWindow: BrowserWindow;
+const { app, BrowserWindow, ipcMain } = require('electron');
+const electronScreen = require('electron').screen;  // Import screen separately with a different name
+const path = require('path'); 
+let mainWindow: typeof BrowserWindow;
 let userSetOpacity = 1;
 
+let databasePath;
+if (app.isPackaged) {
+  databasePath = path.join(process.resourcesPath, 'database.cjs');
+} else {
+  databasePath = './database';
+}
 
-app.whenReady().then(() => {
-  const { width, height } = screen.getPrimaryDisplay().workAreaSize;
+try {
+  const { saveNote: dbSaveNote, getNote: dbGetNote } = require(databasePath);
+
+  app.whenReady().then(() => {
+    const { width, height } = electronScreen.getPrimaryDisplay().workAreaSize;
+    
+    const position = { x: width - 350, y: height - 400 };
   
-
-  const position = { x: width - 350, y: height - 400 };
-
+    mainWindow = new BrowserWindow({
+      width: 300,
+      height: 350,
+      minWidth: 300,
+      x: position.x,
+      y: position.y,
+      alwaysOnTop: true,
+      frame: false,
+      transparent: true,
+      hasShadow: false,
+      webPreferences: {
+        nodeIntegration: true,
+        contextIsolation: false,
+      },
+      roundedCorners: true,
+      resizable: true,
+      movable: true,
+      minimizable: true,
+      closable: true,
+      backgroundMaterial: 'none',
+      vibrancy: 'under-window',
+      visualEffectState: 'active',
+      
+    });
   
-  mainWindow = new BrowserWindow({
-    width: 300,
-    height: 350,
-    x: position.x,
-    y: position.y,
-    alwaysOnTop: true,
-    frame: false,
-    transparent: true,
-    hasShadow: false,
-    webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
-    },
-    resizable: true,
-    movable: true,
-    minimizable: true,
-    closable: true,
-  });
-
-  mainWindow.loadURL("http://localhost:5173");
-
-  // Normal window operation handlers
-  ipcMain.on('set-opacity', (_, opacity) => {
-    userSetOpacity = opacity;
-    mainWindow.setOpacity(opacity);
-  });
+   
+   if (app.isPackaged) {
+   
+    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
+  } else {
+    
+    mainWindow.loadURL('http://localhost:5173');
+  }
   
-  ipcMain.on('set-ignore-mouse-events', (_, ignore, options) => {
-    mainWindow.setIgnoreMouseEvents(ignore, options);
-  });
-
-  mainWindow.on('blur', () => {
-    mainWindow.setOpacity(0.5);
-  });
+    ipcMain.on('set-opacity', (_: Electron.IpcMainEvent, opacity: number) => {
+      userSetOpacity = opacity;
+      mainWindow.setOpacity(opacity);
+    });
   
-  mainWindow.on('focus', () => {
-    mainWindow.setOpacity(userSetOpacity);
-  });
-
-  ipcMain.on('move-window', (_, { dx, dy }) => {
-    const [x, y] = mainWindow.getPosition();
-    mainWindow.setPosition(x + dx, y + dy);
-
-  });
-
-  app.on("window-all-closed", () => {
-    if (process.platform !== "darwin") {
-      app.quit();
+    ipcMain.on('minimize-window', () => {
+      mainWindow.minimize();
+    });
+    
+    interface IgnoreMouseEventsOptions {
+      forward?: boolean;
     }
+  
+    ipcMain.on('set-ignore-mouse-events', (_: Electron.IpcMainEvent, ignore: boolean, options?: IgnoreMouseEventsOptions) => {
+      mainWindow.setIgnoreMouseEvents(ignore, options);
+    });
+  
+    mainWindow.on('blur', () => {
+      mainWindow.setOpacity(0.5);
+    });
+    
+    mainWindow.on('focus', () => {
+      mainWindow.setOpacity(userSetOpacity);
+    });
+  
+    ipcMain.on('move-window', (_: Electron.IpcMainEvent, { dx, dy }: { dx: number, dy: number }) => {
+      const [x, y] = mainWindow.getPosition();
+      mainWindow.setPosition(x + dx, y + dy);
+    });
+  
+    ipcMain.handle('get-note', async () => {
+      return await dbGetNote();
+    });
+  
+    interface NoteData {
+      content: string;
+      title?: string;
+      timestamp?: number;
+      id?: string;
+    }
+  
+    ipcMain.handle('save-note', async (_: Electron.IpcMainInvokeEvent, noteData: NoteData) => {
+      return await dbSaveNote(noteData);
+    });
+  
+    app.on("window-all-closed", () => {
+      if (process.platform !== "darwin") {
+        app.quit();
+      }
+    });
   });
-});
+} catch (error) {
+  console.error('Failed to load database module:', error);
+  app.quit();
+}
+const { saveNote: dbSaveNote, getNote: dbGetNote } = require(databasePath);
+
+
+
