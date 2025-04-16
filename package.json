@@ -20,11 +20,13 @@
   "scripts": {
     "clean": "rimraf dist",
     "dev": "tsc main.ts database.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run clean && tsc main.ts database.ts --outDir dist && vite build",
+    "build": "npm run clean && tsc --project tsconfig.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "package": "npm run build && electron-builder"
   },
+  "asar": true,
+  "compression": "maximum",
   "build": {
     "appId": "com.example.stickier-note",
     "copyright": "Copyright 2025 Ej Sinfuego",
@@ -62,13 +64,32 @@
         "to": "database.cjs"
       },
       {
-        "from": "node_modules",
-        "to": "node_modules"
+        "from": "node_modules/nedb",
+        "to": "node_modules/nedb"
+      },
+      {
+        "from": "node_modules/underscore",
+        "to": "node_modules/underscore"
+      },
+      {
+        "from": "node_modules/async",
+        "to": "node_modules/async"
+      },
+      {
+        "from": "node_modules/binary-search-tree",
+        "to": "node_modules/binary-search-tree"
+      },
+      {
+        "from": "node_modules/mkdirp",
+        "to": "node_modules/mkdirp"
       }
     ],
     "asarUnpack": [
       "node_modules/nedb",
-      "node_modules/underscore"
+      "node_modules/underscore",
+      "node_modules/async",
+      "node_modules/binary-search-tree",
+      "node_modules/mkdirp"
     ],
     "publish": {
       "provider": "github",
@@ -102,6 +123,7 @@
     }
   },
   "dependencies": {
+    "mkdirp": "^0.5.5",
     "nedb": "^1.8.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
