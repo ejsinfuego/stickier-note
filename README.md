@@ -12,3 +12,5 @@ It is built using Electron and ReactJS. It is designed to be overlayed on top of
 - resize and drag the notes around the screen
 - change the color of the notes
 - change the background color of the notes
+
+![stickier_note](https://github.com/user-attachments/assets/f14dd57b-8d2a-46f7-aebf-bfdafa96f891)
