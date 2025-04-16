@@ -9,9 +9,11 @@ let userSetOpacity = 1;
 
 let databasePath;
 if (app.isPackaged) {
+  // Use extraResources path for your database module
   databasePath = path.join(process.resourcesPath, 'database.cjs');
 } else {
-  databasePath = './database';
+  // Use relative path for development
+  databasePath = path.join(__dirname, 'database');
 }
 
 try {
@@ -48,13 +50,12 @@ try {
     });
   
    
-   if (app.isPackaged) {
-   
-    mainWindow.loadFile(path.join(__dirname, 'dist', 'index.html'));
-  } else {
-    
-    mainWindow.loadURL('http://localhost:5173');
-  }
+    if (app.isPackaged) {
+      // In a packaged app, __dirname points to the app.asar directory
+      mainWindow.loadFile(path.join(__dirname, 'index.html'));
+    } else {
+      mainWindow.loadURL('http://localhost:5173');
+    }
   
     ipcMain.on('set-opacity', (_: Electron.IpcMainEvent, opacity: number) => {
       userSetOpacity = opacity;
@@ -107,6 +108,8 @@ try {
       }
     });
   });
+
+  
 } catch (error) {
   console.error('Failed to load database module:', error);
   app.quit();

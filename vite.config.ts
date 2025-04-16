@@ -16,7 +16,7 @@ export default defineConfig({
         database: resolve(__dirname, 'database.ts')
       },
       output: {
-        format: 'cjs',  // Add this line to force CommonJS format
+        format: 'commonjs',
         entryFileNames: (chunk) => {
           return chunk.name === 'main' || chunk.name === 'database' 
             ? '[name].js' 
@@ -24,10 +24,7 @@ export default defineConfig({
         }
       },
       external: [
-        'electron',
-        'path',
-        'fs',
-        'nedb'
+        'electron'
       ]
     }
   }
