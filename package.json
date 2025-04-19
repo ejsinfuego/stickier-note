@@ -1,7 +1,7 @@
 {
   "name": "stickier-note",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "dist/main.js",
   "types": "./index.d.ts",
   "description": "A minimal sticky note application that's like stickier",
