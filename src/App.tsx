@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import './App.css';
 
 const { ipcRenderer } = window.require('electron');
@@ -10,6 +10,9 @@ function App() {
   const [noteColor, setNoteColor] = useState('#FFFF88');
   const [textColor, setTextColor] = useState('#000000');
   const [textContent, setTextContent] = useState('');
+  const [isBold, setIsBold] = useState(false);
+  const [isItalic, setIsItalic] = useState(false);
+  const editorRef = useRef<HTMLDivElement>(null);
 
   interface NoteData {
     note: string;
@@ -17,6 +20,43 @@ function App() {
     textColor: string;
     textContent: string;
   }
+
+
+const toggleBold = () => {
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('bold', false);
+    setIsBold(document.queryCommandState('bold'));
+  }
+};
+  
+const toggleItalic = () => {
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('italic', false);
+    setIsItalic(document.queryCommandState('italic'));
+  }
+};
+
+const changeFontSize = (size: string) => {
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('fontSize', false, size);
+  }
+};
+
+// Add a function to track formatting state
+const checkFormatting = () => {
+  if (editorRef.current) {
+    setIsBold(document.queryCommandState('bold'));
+    setIsItalic(document.queryCommandState('italic'));
+  }
+};
+const handleEditorChange = () => {
+  if (editorRef.current) {
+    setNote(editorRef.current.textContent || '');
+  }
+};
 
   useEffect(() => {
     if (note === '' && noteColor === '#FFFF88' && textColor === '#000000') return;
@@ -30,7 +70,6 @@ function App() {
     ipcRenderer.invoke('save-note', noteData);
   }, [note, noteColor, textColor, textContent]);
 
-
   useEffect(() => {
     ipcRenderer.invoke('get-note').then((noteData: NoteData) => {
       if (noteData) {
@@ -38,6 +77,11 @@ function App() {
         setNoteColor(noteData.noteColor || '#FFFF88');
         setTextColor(noteData.textColor || '#000000');
         setTextContent(noteData.textContent || '');
+        
+        // Set the editor content from saved note
+        if (editorRef.current && noteData.note) {
+          editorRef.current.textContent = noteData.note;
+        }
       }
     });
   }, []);
@@ -60,14 +104,13 @@ function App() {
           <div className="button-group">
           <button 
             className="control-btn close-btn"
-          onClick={() => window.close()}
+            onClick={() => window.close()}
           >
             ×
           </button>
           <button className='control-btn minimize-btn' 
-          onClick={() =>
-            ipcRenderer.send('minimize-window')
-          }>
+            onClick={() => ipcRenderer.send('minimize-window')}
+          >
             {' —'}
           </button>
           </div>
@@ -83,7 +126,6 @@ function App() {
               <option value="#DCFF7E">Green</option>
             </select>
             
-          
             <select
               className="color-picker text-color-picker"
               value={textColor}
@@ -101,40 +143,17 @@ function App() {
           </div>
         </div>
       </div>
-      
-      <textarea
-        className="note-content"
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        placeholder="Type your note here..."
-        style={{ color: textColor }} 
-        autoFocus
+      <div
+      ref={editorRef}
+      className="note-content editable"
+      contentEditable={true}
+      onInput={handleEditorChange}
+      onMouseUp={checkFormatting}
+      onKeyUp={checkFormatting}
+      style={{ color: textColor }}
+      onBlur={handleEditorChange}
       />
-      {/* disable this temporarily */}
-      {/* <div className="note-footer">
-        <div className="opacity-control">
-          <span>Opacity: </span>
-          <input 
-            type="range" 
-            min="0.3" 
-            max="1" 
-            step="0.1"
-            value={opacity}
-            onChange={handleOpacityChange}
-          
-          />
-        </div>
-        
-        <label className="click-through-label">
-          <input 
-            type="checkbox" 
-            checked={isClickThrough}
-            onChange={(e) => setIsClickThrough(e.target.checked)}
-          />
-          Click-through
-        </label>
-      </div> */}
-    </div>
+      </div>
   );
 }
 
