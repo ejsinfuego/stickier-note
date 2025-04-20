@@ -23,34 +23,40 @@ function App() {
 
 
 const toggleBold = () => {
-  editorRef.current?.focus();
-  document.execCommand('bold', false);
-  setIsBold(document.queryCommandState('bold'));
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('bold', false);
+    setIsBold(document.queryCommandState('bold'));
+  }
 };
-
+  
 const toggleItalic = () => {
-  editorRef.current?.focus();
-  document.execCommand('italic', false);
-  setIsItalic(document.queryCommandState('italic'));
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('italic', false);
+    setIsItalic(document.queryCommandState('italic'));
+  }
 };
 
 const changeFontSize = (size: string) => {
-  editorRef.current?.focus();
-  document.execCommand('fontSize', false, size);
+  if (editorRef.current) {
+    editorRef.current.focus();
+    document.execCommand('fontSize', false, size);
+  }
 };
 
 // Add a function to track formatting state
 const checkFormatting = () => {
-  setIsBold(document.queryCommandState('bold'));
-  setIsItalic(document.queryCommandState('italic'));
+  if (editorRef.current) {
+    setIsBold(document.queryCommandState('bold'));
+    setIsItalic(document.queryCommandState('italic'));
+  }
 };
-
-  // Handle editor content changes
-  const handleEditorChange = () => {
-    if (editorRef.current) {
-      setNote(editorRef.current.innerHTML);
-    }
-  };
+const handleEditorChange = () => {
+  if (editorRef.current) {
+    setNote(editorRef.current.textContent || '');
+  }
+};
 
   useEffect(() => {
     if (note === '' && noteColor === '#FFFF88' && textColor === '#000000') return;
@@ -74,7 +80,7 @@ const checkFormatting = () => {
         
         // Set the editor content from saved note
         if (editorRef.current && noteData.note) {
-          editorRef.current.innerHTML = noteData.note;
+          editorRef.current.textContent = noteData.note;
         }
       }
     });
@@ -145,6 +151,7 @@ const checkFormatting = () => {
       onMouseUp={checkFormatting}
       onKeyUp={checkFormatting}
       style={{ color: textColor }}
+      onBlur={handleEditorChange}
       />
       </div>
   );
