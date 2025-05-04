@@ -221,27 +221,23 @@ jobs:
               cp -r ./dist/linux-unpacked/* AppDir/usr/bin/
             fi
             
-            # Create desktop entry
-            cat > AppDir/usr/share/applications/stickiernote.desktop << 'DESKTOPENTRY'
-[Desktop Entry]
-Name=Stickier Note
-Exec=stickiernote
-Icon=stickiernote
-Type=Application
-Categories=Utility;
-DESKTOPENTRY
+            # Create desktop entry - Note: Using single quotes to avoid YAML parsing issues
+            echo '[Desktop Entry]' > AppDir/usr/share/applications/stickiernote.desktop
+            echo 'Name=Stickier Note' >> AppDir/usr/share/applications/stickiernote.desktop
+            echo 'Exec=stickiernote' >> AppDir/usr/share/applications/stickiernote.desktop
+            echo 'Icon=stickiernote' >> AppDir/usr/share/applications/stickiernote.desktop
+            echo 'Type=Application' >> AppDir/usr/share/applications/stickiernote.desktop
+            echo 'Categories=Utility;' >> AppDir/usr/share/applications/stickiernote.desktop
             
             # Create simple icon
             cp ./public/note.svg AppDir/usr/share/icons/hicolor/256x256/apps/stickiernote.svg || echo "Icon copy failed"
             
-            # Create AppRun
-            cat > AppDir/AppRun << 'APPRUN'
-#!/bin/bash
-HERE=$(dirname "$(readlink -f "${0}")")
-export PATH="${HERE}/usr/bin:${PATH}"
-export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
-exec "${HERE}/usr/bin/stickiernote" "$@"
-APPRUN
+            # Create AppRun - Using echo commands instead of here-document
+            echo '#!/bin/bash' > AppDir/AppRun
+            echo 'HERE=$(dirname "$(readlink -f "${0}")")' >> AppDir/AppRun
+            echo 'export PATH="${HERE}/usr/bin:${PATH}"' >> AppDir/AppRun
+            echo 'export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"' >> AppDir/AppRun
+            echo 'exec "${HERE}/usr/bin/stickiernote" "$@"' >> AppDir/AppRun
             chmod +x AppDir/AppRun
             
             # Create AppImage
