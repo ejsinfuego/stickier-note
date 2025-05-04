@@ -206,8 +206,12 @@ jobs:
           if ! [ -f "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" ]; then
             echo "AppImage not found, creating a simple one from linux-unpacked"
             
-            # Install AppImage tools
-            sudo apt-get install -y fuse libfuse2
+            # Install AppImage tools - use more flexible approach to handle package name changes
+            sudo apt-get update
+            # Try installing fuse and libfuse2 with fallbacks
+            sudo apt-get install -y fuse || sudo apt-get install -y fuse3
+            sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64
+            
             wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
             chmod +x appimagetool-x86_64.AppImage
             
@@ -240,8 +244,13 @@ jobs:
             echo 'exec "${HERE}/usr/bin/stickiernote" "$@"' >> AppDir/AppRun
             chmod +x AppDir/AppRun
             
-            # Create AppImage
-            ./appimagetool-x86_64.AppImage AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+            # Create AppImage - use fallback approach if standard method fails
+            ./appimagetool-x86_64.AppImage AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" || {
+              echo "AppImage creation with standard method failed, trying with --appimage-extract"
+              # Extract appimagetool contents and use it directly
+              ./appimagetool-x86_64.AppImage --appimage-extract
+              ./squashfs-root/AppRun AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+            }
           fi
       
       # Upload Linux build
