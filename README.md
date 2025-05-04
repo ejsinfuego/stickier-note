@@ -25,11 +25,11 @@ It is built using Electron and ReactJS. It is designed to be overlayed on top of
 Choose the appropriate download for your operating system from the [latest release page](https://github.com/ejsinfuego/stickier-note/releases/latest).
 
 ### macOS
-- **Intel Mac**: [Download for Intel Mac](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2-mac-x64.dmg)
-- **Apple Silicon (M1/M2/M3)**: [Download for Apple Silicon](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2-mac-arm64.dmg)
+- **Intel Mac**: [Download for Intel Mac](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note-1.0.2-mac-x64.dmg)
+- **Apple Silicon (M1/M2/M3)**: [Download for Apple Silicon](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note-1.0.2-mac-arm64.dmg)
 
 ### Windows
-- [Download for Windows](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note.Setup.1.0.2.exe)
+- [Download for Windows](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note.Setup.1.0.2.exe)
 
 ### Linux
 - [Download AppImage for Linux](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2.AppImage)
