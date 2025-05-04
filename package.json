@@ -36,7 +36,7 @@
   "build": {
     "appId": "com.example.stickier-note",
     "copyright": "Copyright 2025 Ej Sinfuego",
-    "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+    "artifactName": "${productName}-${version}.${ext}",
     "productName": "Stickier Note",
     "files": [
       "dist/**/*",
@@ -147,7 +147,8 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Stickier Note",
       "perMachine": false,
-      "differentialPackage": true
+      "differentialPackage": true,
+      "artifactName": "${productName} Setup ${version}.${ext}"
     },
     "linux": {
       "target": [

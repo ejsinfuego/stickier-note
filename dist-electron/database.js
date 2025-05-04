@@ -41,7 +41,9 @@ catch (error) {
             path2.join(resourcesPath, 'node_modules', 'nedb'),
             path2.join(appPath, 'node_modules', 'nedb'),
             path2.join(resourcesPath, 'app.asar.unpacked', 'node_modules', 'nedb'),
-            path2.join(path2.dirname(appPath), 'node_modules', 'nedb')
+            path2.join(path2.dirname(appPath), 'node_modules', 'nedb'),
+            // Add the path from the remote changes as another fallback
+            path2.join(appPath, '..', 'Resources', 'node_modules', 'nedb')
         ];
         console.log('Trying to load nedb from possible paths:', possiblePaths);
         var loaded = false;
