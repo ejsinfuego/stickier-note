@@ -113,7 +113,7 @@
     },
     "directories": {
       "buildResources": "src/assets",
-      "output": "release"
+      "output": "dist"
     },
     "mac": {
       "target": [

@@ -87,8 +87,8 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           dir
-          echo "Listing release directory contents:"
-          dir release
+          echo "Listing dist directory contents:"
+          dir dist
           echo "Finding all EXE files:"
           Get-ChildItem -Path . -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
       
@@ -99,7 +99,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
+          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
           asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
@@ -132,8 +132,8 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           ls -la
-          echo "Listing release directory contents:"
-          ls -la release || echo "release directory not found"
+          echo "Listing dist directory contents:"
+          ls -la dist || echo "dist directory not found"
           echo "Finding app.asar file:"
           find . -name "app.asar"
       
@@ -143,7 +143,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
           asset_name: "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
           asset_content_type: application/octet-stream
 
