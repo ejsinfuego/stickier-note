@@ -2,7 +2,7 @@
   "name": "stickier-note",
   "private": true,
   "version": "1.0.2",
-  "main": "dist/main.js",
+  "main": "dist-electron/main.js",
   "types": "./index.d.ts",
   "description": "A minimal sticky note application that's like stickier",
   "author": {
@@ -18,17 +18,18 @@
     "url": "https://github.com/ejsinfuego/stickier-note"
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "dev": "tsc main.ts database.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run clean && tsc --project tsconfig.json && vite build",
+    "clean": "rimraf dist dist-electron",
+    "dev": "tsc main.ts database.ts --outDir dist-electron && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "npm run clean && tsc --project tsconfig.json && tsc main.ts database.ts --outDir dist-electron && vite build",
+    "build:optimized": "npm run build && node optimize-build.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "package": "npm run build && electron-builder",
-    "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win",
-    "package:linux": "npm run build && electron-builder --linux",
-    "package:all": "npm run build && electron-builder -mwl",
-    "publish": "npm run build && electron-builder --publish always"
+    "package": "npm run build:optimized && electron-builder",
+    "package:mac": "npm run build:optimized && electron-builder --mac",
+    "package:win": "npm run build:optimized && electron-builder --win",
+    "package:linux": "npm run build:optimized && electron-builder --linux",
+    "package:all": "npm run build:optimized && electron-builder -mwl",
+    "publish": "npm run build:optimized && electron-builder --publish always"
   },
   "asar": true,
   "compression": "maximum",
@@ -50,27 +51,33 @@
     },
     "files": [
       "dist/**/*",
+      "dist-electron/**/*",
       "package.json",
-      "node_modules/**/*"
-    ],
-    "extraFiles": [
-      {
-        "from": "assets",
-        "to": "assets"
-      }
+      "node_modules/nedb/**/*",
+      "node_modules/binary-search-tree/**/*",
+      "node_modules/immediate/**/*",
+      "node_modules/underscore/**/*",
+      "node_modules/mkdirp/**/*",
+      "node_modules/minimist/**/*",
+      "node_modules/async/**/*",
+      "node_modules/localforage/**/*"
     ],
     "extraResources": [
       {
-        "from": "assets",
+        "from": "src/assets",
         "to": "assets"
       },
       {
-        "from": "dist/database.js",
+        "from": "dist-electron/database.js",
         "to": "database.cjs"
       },
       {
         "from": "node_modules/nedb",
         "to": "node_modules/nedb"
+      },
+      {
+        "from": "node_modules/binary-search-tree",
+        "to": "node_modules/binary-search-tree"
       },
       {
         "from": "node_modules/underscore",
@@ -81,20 +88,21 @@
         "to": "node_modules/async"
       },
       {
-        "from": "node_modules/binary-search-tree",
-        "to": "node_modules/binary-search-tree"
-      },
-      {
         "from": "node_modules/mkdirp",
         "to": "node_modules/mkdirp"
+      },
+      {
+        "from": "node_modules/minimist",
+        "to": "node_modules/minimist"
+      },
+      {
+        "from": "node_modules/immediate",
+        "to": "node_modules/immediate"
+      },
+      {
+        "from": "node_modules/localforage",
+        "to": "node_modules/localforage"
       }
-    ],
-    "asarUnpack": [
-      "node_modules/nedb",
-      "node_modules/underscore",
-      "node_modules/async",
-      "node_modules/binary-search-tree",
-      "node_modules/mkdirp"
     ],
     "publish": {
       "provider": "github",
@@ -104,7 +112,8 @@
       "private": false
     },
     "directories": {
-      "buildResources": "src/assets"
+      "buildResources": "src/assets",
+      "output": "release"
     },
     "linux": {
       "target": [
@@ -114,7 +123,8 @@
             "x64"
           ]
         }
-      ]
+      ],
+      "category": "Utility"
     },
     "mac": {
       "target": [
@@ -125,7 +135,7 @@
             "arm64"
           ]
         }
-      ], 
+      ],
       "icon": "src/assets/note.icns",
       "category": "public.app-category.productivity"
     }
@@ -152,6 +162,7 @@
     "globals": "^15.15.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.1",
+    "terser": "^5.39.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",
