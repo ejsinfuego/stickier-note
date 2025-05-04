@@ -22,17 +22,17 @@ It is built using Electron and ReactJS. It is designed to be overlayed on top of
 
 ### Current Version: 1.0.2
 
-Choose the appropriate download for your operating system:
+Choose the appropriate download for your operating system from the [latest release page](https://github.com/ejsinfuego/stickier-note/releases/latest).
 
 ### macOS
-- **Intel Mac**: [Download Stickier Note 1.0.2 (Intel)](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note-1.0.2-mac-x64.dmg)
-- **Apple Silicon (M1/M2/M3)**: [Download Stickier Note 1.0.2 (Apple Silicon)](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note-1.0.2-mac-arm64.dmg)
+- **Intel Mac**: [Download for Intel Mac](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2-mac-x64.dmg)
+- **Apple Silicon (M1/M2/M3)**: [Download for Apple Silicon](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2-mac-arm64.dmg)
 
 ### Windows
-- [Download Stickier Note 1.0.2 Installer (Windows)](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note.Setup.1.0.2.exe)
+- [Download for Windows](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note.Setup.1.0.2.exe)
 
 ### Linux
-- [Download Stickier Note 1.0.2 (AppImage)](https://github.com/ejsinfuego/stickier-note/releases/download/v1.0.2/Stickier.Note-1.0.2.AppImage)
+- [Download AppImage for Linux](https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-1.0.2.AppImage)
 
 Or [view all releases](https://github.com/ejsinfuego/stickier-note/releases) to find older versions.
 
@@ -43,6 +43,8 @@ Or [view all releases](https://github.com/ejsinfuego/stickier-note/releases) to 
 2. Open the downloaded .dmg file
 3. Drag the Stickier Note app to your Applications folder
 4. Right-click on the app and select "Open" the first time (to bypass Gatekeeper security)
+
+> **Note:** If you encounter any "Module not found" errors when running the application, please download the latest version from the [releases page](https://github.com/ejsinfuego/stickier-note/releases/latest), which includes all necessary dependencies.
 
 ### Windows
 1. Download the .exe installer
