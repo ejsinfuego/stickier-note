@@ -73,7 +73,7 @@ jobs:
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
           npm run build
-          npx electron-builder --mac --publish always
+          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --mac
           
   build-windows:
     name: Build Windows
@@ -99,7 +99,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run build
-          npx electron-builder --win --publish always
+          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --win
           
   build-linux:
     name: Build Linux
@@ -130,7 +130,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run build
-          npx electron-builder --linux --publish always
+          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --linux
           
   finalize-release:
     name: Finalize Release
