@@ -157,7 +157,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
+          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
           asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
           asset_content_type: application/octet-stream
 
@@ -222,26 +222,26 @@ jobs:
             fi
             
             # Create desktop entry
-            cat > AppDir/usr/share/applications/stickiernote.desktop << EOF
-            [Desktop Entry]
-            Name=Stickier Note
-            Exec=stickiernote
-            Icon=stickiernote
-            Type=Application
-            Categories=Utility;
-            EOF
+            cat > AppDir/usr/share/applications/stickiernote.desktop << 'DESKTOPENTRY'
+[Desktop Entry]
+Name=Stickier Note
+Exec=stickiernote
+Icon=stickiernote
+Type=Application
+Categories=Utility;
+DESKTOPENTRY
             
             # Create simple icon
             cp ./public/note.svg AppDir/usr/share/icons/hicolor/256x256/apps/stickiernote.svg || echo "Icon copy failed"
             
             # Create AppRun
-            cat > AppDir/AppRun << EOF
-            #!/bin/bash
-            HERE=\$(dirname "\$(readlink -f "\${0}")")
-            export PATH="\${HERE}/usr/bin:\${PATH}"
-            export LD_LIBRARY_PATH="\${HERE}/usr/lib:\${LD_LIBRARY_PATH}"
-            exec "\${HERE}/usr/bin/stickiernote" "\$@"
-            EOF
+            cat > AppDir/AppRun << 'APPRUN'
+#!/bin/bash
+HERE=$(dirname "$(readlink -f "${0}")")
+export PATH="${HERE}/usr/bin:${PATH}"
+export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"
+exec "${HERE}/usr/bin/stickiernote" "$@"
+APPRUN
             chmod +x AppDir/AppRun
             
             # Create AppImage
