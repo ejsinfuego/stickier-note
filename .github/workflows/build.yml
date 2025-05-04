@@ -85,6 +85,11 @@ jobs:
           npm run build
           npx electron-builder --mac --x64 --arm64 --publish never
       
+      - name: List release directory files
+        run: |
+          echo "Listing release directory contents for debugging:"
+          find ./release -type f -name "*.dmg" | sort
+      
       # Upload macOS Intel build
       - name: Upload macOS Intel Build
         uses: actions/upload-release-asset@v1
@@ -92,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
+          asset_path: ./release/mac/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.dmg
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -103,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
+          asset_path: ./release/mac-arm64/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.dmg
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -131,6 +136,11 @@ jobs:
         run: |
           npm run build
           npx electron-builder --win --publish never
+      
+      - name: List release directory files
+        run: |
+          echo "Listing release directory contents for debugging:"
+          Get-ChildItem -Path .\release -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
       
       # Upload Windows build
       - name: Upload Windows Build
@@ -173,6 +183,11 @@ jobs:
           npm run build
           npx electron-builder --linux AppImage --publish never
       
+      - name: List release directory files
+        run: |
+          echo "Listing release directory contents for debugging:"
+          find ./release -type f -name "*.AppImage" | sort
+      
       # Upload Linux build
       - name: Upload Linux Build
         uses: actions/upload-release-asset@v1
@@ -180,7 +195,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
+          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-x86_64.AppImage
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
           asset_content_type: application/octet-stream
 
