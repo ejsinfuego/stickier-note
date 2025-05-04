@@ -25,6 +25,7 @@ jobs:
         id: create_release
         uses: softprops/action-gh-release@v1
         with:
+          token: ${{ secrets.GH_TOKEN }}
           tag_name: ${{ github.ref_name }}
           name: Stickier Note ${{ github.ref_name }}
           draft: true
@@ -38,6 +39,12 @@ jobs:
             * Better user experience
             
             ## Download the appropriate package for your platform
+            - macOS Intel: `Stickier.Note-${{ github.ref_name }}-mac-x64.dmg`
+            - macOS Apple Silicon: `Stickier.Note-${{ github.ref_name }}-mac-arm64.dmg`
+            - Windows: `Stickier.Note.Setup.${{ github.ref_name }}.exe`
+            - Linux: `Stickier.Note-${{ github.ref_name }}.AppImage`
+            
+            See installation instructions in the [README](https://github.com/ejsinfuego/stickier-note#installation-instructions)
             
   build-macos:
     name: Build macOS
@@ -132,7 +139,7 @@ jobs:
       - name: Update Release
         uses: actions/github-script@v6
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.GH_TOKEN }}
           script: |
             try {
               const { owner, repo } = context.repo;
@@ -145,8 +152,19 @@ jobs:
                 release_id: releaseId,
               });
               
-              // Keep as draft for now, let the owner publish manually
+              // Verify assets were uploaded
+              if (release.data.assets.length === 0) {
+                core.setFailed('No assets were uploaded to the release!');
+                return;
+              }
+              
               console.log(`Release ${{ github.ref_name }} created successfully with ${release.data.assets.length} assets.`);
+              console.log('Assets:');
+              release.data.assets.forEach(asset => {
+                console.log(`- ${asset.name}: ${asset.browser_download_url}`);
+              });
+              
+              // Keep as draft for now, let the owner publish manually
               console.log(`Visit ${release.data.html_url} to publish the release.`);
             } catch (error) {
               core.setFailed(`Action failed with error: ${error}`);
