@@ -115,7 +115,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libxkbcommon-x11-0 libxss1 libgconf-2-4 libgtk-3-0 libnotify-dev libatspi2.0-0
+          sudo apt-get install -y libxkbcommon-x11-0 libxss1 libgtk-3-0 libnotify-dev libatspi2.0-0 libnss3 libxtst6
           
       - name: Build Linux
         env:
