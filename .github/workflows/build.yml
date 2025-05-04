@@ -10,18 +10,144 @@ on:
 permissions:
   contents: write
   packages: write
-  issues: write
-  pull-requests: write
 
 jobs:
-  # Simplified approach - just build for each platform directly
-  build-all:
-    name: Build ${{ matrix.os }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-    
+  # First create the release draft
+  create-draft-release:
+    name: Create Draft Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_id: ${{ steps.create_release.outputs.id }}
+      version: ${{ steps.get_version.outputs.version }}
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Get version from package.json
+        id: get_version
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "Version from package.json: $VERSION"
+        
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          tag_name: v${{ steps.get_version.outputs.version }}
+          release_name: Stickier Note v${{ steps.get_version.outputs.version }}
+          draft: true
+          prerelease: false
+          body: |
+            # Stickier Note v${{ steps.get_version.outputs.version }} Release
+            
+            ## What's Changed
+            * Optimized application size (93% smaller!)
+            * Improved performance
+            * Better user experience
+            
+            ## Download the appropriate package for your platform
+            - macOS Intel: [Stickier.Note-${{ steps.get_version.outputs.version }}-mac-x64.dmg](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}-mac-x64.dmg)
+            - macOS Apple Silicon: [Stickier.Note-${{ steps.get_version.outputs.version }}-mac-arm64.dmg](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}-mac-arm64.dmg)
+            - Windows: [Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe)
+            - Linux: [Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage)
+            
+            See installation instructions in the [README](https://github.com/ejsinfuego/stickier-note#installation-instructions)
+
+  # Build for macOS (both Intel and Apple Silicon)
+  build-macos:
+    name: Build macOS
+    needs: create-draft-release
+    runs-on: macos-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build macOS
+        env:
+          # Disabling code signing
+          CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          npm run build
+          npx electron-builder --mac --x64 --arm64 --publish never
+      
+      # Upload macOS Intel build
+      - name: Upload macOS Intel Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
+          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
+          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
+          asset_content_type: application/octet-stream
+          
+      # Upload macOS Apple Silicon build
+      - name: Upload macOS Apple Silicon Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
+          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
+          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
+          asset_content_type: application/octet-stream
+
+  # Build for Windows
+  build-windows:
+    name: Build Windows
+    needs: create-draft-release
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Build Windows
+        run: |
+          npm run build
+          npx electron-builder --win --publish never
+      
+      # Upload Windows build
+      - name: Upload Windows Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
+          asset_path: ./release/Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
+          asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
+          asset_content_type: application/octet-stream
+
+  # Build for Linux
+  build-linux:
+    name: Build Linux
+    needs: create-draft-release
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -38,52 +164,64 @@ jobs:
         run: npm ci
         
       - name: Install Linux dependencies
-        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-x11-0 libxss1 libgtk-3-0 libnotify-dev libatspi2.0-0 libnss3 libxtst6
           
-      - name: Build and Publish
-        env:
-          # Use built-in token to avoid malformed token issues
-          GH_TOKEN: ${{ github.token }}
-          # Disabling code signing for macOS
-          CSC_IDENTITY_AUTO_DISCOVERY: false
+      - name: Build Linux
         run: |
           npm run build
-          
-          # For macOS
-          if [ "${{ matrix.os }}" = "macos-latest" ]; then
-            npx electron-builder --mac --publish always
-          fi
-          
-          # For Windows
-          if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            npx electron-builder --win --publish always
-          fi
-          
-          # For Linux
-          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
-            npx electron-builder --linux --publish always
-          fi
-        shell: bash
-        
-  # Add a final job that checks the results and adds version-specific links to the release
-  update-release-notes:
-    name: Update Release Notes
-    needs: build-all
+          npx electron-builder --linux AppImage --publish never
+      
+      # Upload Linux build
+      - name: Upload Linux Build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
+          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
+          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
+          asset_content_type: application/octet-stream
+
+  # Update README with download links
+  update-readme:
+    name: Update README with Download Links
+    needs: [create-draft-release, build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
-        
-      - name: Get package version
-        id: package-version
-        uses: martinbeentjes/npm-get-version-action@v1.3.1
       
-      - name: Update Release Notes
+      - name: Update README with new version
         run: |
-          echo "Release ${{ steps.package-version.outputs.current-version }} created successfully."
-          echo "Assets are available on the release page."
-          echo "Visit https://github.com/ejsinfuego/stickier-note/releases/latest to download and see the details."
-        shell: bash
+          VERSION="${{ needs.create-draft-release.outputs.version }}"
+          
+          # Update README.md with new version and download links
+          sed -i "s/### Current Version: .*/### Current Version: $VERSION/" README.md
+          
+          # Update macOS Intel download link
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*-mac-x64.dmg|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION-mac-x64.dmg|" README.md
+          
+          # Update macOS Apple Silicon download link
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*-mac-arm64.dmg|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION-mac-arm64.dmg|" README.md
+          
+          # Update Windows download link
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note.Setup..*.exe|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note.Setup.$VERSION.exe|" README.md
+          
+          # Update Linux download link
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*.AppImage|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION.AppImage|" README.md
+          
+          # Update Linux installation instruction to match version
+          sed -i "s|chmod +x Stickier.Note-.*.AppImage|chmod +x Stickier.Note-$VERSION.AppImage|" README.md
+          sed -i "s|./Stickier.Note-.*.AppImage|./Stickier.Note-$VERSION.AppImage|" README.md
+          
+          cat README.md
+      
+      - name: Commit and push README update
+        run: |
+          git config --global user.name 'GitHub Actions'
+          git config --global user.email 'github-actions@github.com'
+          git add README.md
+          git commit -m "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
+          git push
