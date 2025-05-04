@@ -1,12 +1,12 @@
 {
   "name": "stickier-note",
   "private": true,
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist/main.js",
   "types": "./index.d.ts",
   "description": "A minimal sticky note application that's like stickier",
   "author": {
-    "name": "Ej Sinfuego",
+    "name": "firespark",
     "email": "edzeljohnsinfuego@gmail.com",
     "url": "https://ejsinfuego.com"
   },
@@ -23,7 +23,12 @@
     "build": "npm run clean && tsc --project tsconfig.json && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "package": "npm run build && electron-builder"
+    "package": "npm run build && electron-builder",
+    "package:mac": "npm run build && electron-builder --mac",
+    "package:win": "npm run build && electron-builder --win",
+    "package:linux": "npm run build && electron-builder --linux",
+    "package:all": "npm run build && electron-builder -mwl",
+    "publish": "npm run build && electron-builder --publish always"
   },
   "asar": true,
   "compression": "maximum",
@@ -95,11 +100,11 @@
       "provider": "github",
       "owner": "ejsinfuego",
       "repo": "stickier-note",
-      "releaseType": "draft"
+      "releaseType": "draft",
+      "private": false
     },
-    "compression": "store",
     "directories": {
-      "buildResources": "assets"
+      "buildResources": "src/assets"
     },
     "linux": {
       "target": [
@@ -116,10 +121,13 @@
         {
           "target": "dmg",
           "arch": [
-            "x64"
+            "x64",
+            "arm64"
           ]
         }
-      ]
+      ], 
+      "icon": "src/assets/note.icns",
+      "category": "public.app-category.productivity"
     }
   },
   "dependencies": {

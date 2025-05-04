@@ -1,7 +1,5 @@
-// import { app, BrowserWindow, ipcMain, screen } from "electron";
-// import { getNote, saveNote } from "./database";
-
-const { app, BrowserWindow, ipcMain } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog } = require('electron');
+const https = require('https');
 const electronScreen = require('electron').screen;  // Import screen separately with a different name
 const path = require('path'); 
 let mainWindow: typeof BrowserWindow;
@@ -14,6 +12,52 @@ if (app.isPackaged) {
 } else {
   // Use relative path for development
   databasePath = path.join(__dirname, 'database');
+}
+
+// Function to check for updates
+function checkForUpdates(currentVersion: string) {
+  const options = {
+    hostname: 'api.github.com',
+    path: '/repos/ejsinfuego/stickier-note/releases/latest',
+    headers: {
+      'User-Agent': 'Stickier-Note-App'
+    }
+  };
+
+  https.get(options, (res: any) => {
+    let data = '';
+    
+    res.on('data', (chunk: string) => {
+      data += chunk;
+    });
+    
+    res.on('end', () => {
+      try {
+        const release = JSON.parse(data);
+        const latestVersion = release.tag_name.replace('v', '');
+        
+        // Compare versions (simple string comparison works for semver like 1.0.2)
+        if (latestVersion > currentVersion) {
+          dialog.showMessageBox({
+            type: 'info',
+            title: 'Update Available',
+            message: `A new version (${latestVersion}) is available!`,
+            buttons: ['Download', 'Later'],
+            detail: 'Would you like to download the latest version?'
+          }).then((result) => {
+            if (result.response === 0) {
+              // Open the release page in the default browser
+              require('electron').shell.openExternal(release.html_url);
+            }
+          });
+        }
+      } catch (error) {
+        console.error('Error checking for updates:', error);
+      }
+    });
+  }).on('error', (error: Error) => {
+    console.error('Error checking for updates:', error);
+  });
 }
 
 try {
@@ -92,10 +136,11 @@ try {
     });
   
     interface NoteData {
-      content: string;
-      title?: string;
-      timestamp?: number;
-      id?: string;
+      note: string;
+      noteColor: string;
+      textColor: string;
+      textContent: string;
+      htmlContent?: string; // Add HTML content field
     }
   
     ipcMain.handle('save-note', async (_: Electron.IpcMainInvokeEvent, noteData: NoteData) => {
@@ -107,6 +152,12 @@ try {
         app.quit();
       }
     });
+
+    // Check for updates when app starts (only in packaged app)
+    if (app.isPackaged) {
+      const currentVersion = app.getVersion();
+      checkForUpdates(currentVersion);
+    }
   });
 
   
