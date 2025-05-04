@@ -24,8 +24,9 @@ jobs:
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          token: ${{ secrets.GH_TOKEN }}
           tag_name: ${{ github.ref_name }}
           name: Stickier Note ${{ github.ref_name }}
           draft: true
@@ -138,8 +139,9 @@ jobs:
     steps:
       - name: Update Release
         uses: actions/github-script@v6
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
         with:
-          github-token: ${{ secrets.GH_TOKEN }}
           script: |
             try {
               const { owner, repo } = context.repo;
