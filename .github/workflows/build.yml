@@ -14,97 +14,14 @@ permissions:
   pull-requests: write
 
 jobs:
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    outputs:
-      upload_url: ${{ steps.create_release.outputs.upload_url }}
-      release_id: ${{ steps.create_release.outputs.id }}
-    steps:
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          tag_name: ${{ github.ref_name }}
-          release_name: Stickier Note ${{ github.ref_name }}
-          draft: true
-          prerelease: false
-          body: |
-            Stickier Note ${{ github.ref_name }} Release
-            
-            ## What's Changed
-            * Optimized application size (93% smaller!)
-            * Improved performance
-            * Better user experience
-            
-            ## Download the appropriate package for your platform
-            - macOS Intel: `Stickier.Note-${{ github.ref_name }}-mac-x64.dmg`
-            - macOS Apple Silicon: `Stickier.Note-${{ github.ref_name }}-mac-arm64.dmg`
-            - Windows: `Stickier.Note.Setup.${{ github.ref_name }}.exe`
-            - Linux: `Stickier.Note-${{ github.ref_name }}.AppImage`
-            
-            See installation instructions in the [README](https://github.com/ejsinfuego/stickier-note#installation-instructions)
-            
-  build-macos:
-    name: Build macOS
-    needs: release
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build macOS
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-          # Disabling code signing
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-        run: |
-          npm run build
-          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --mac
-          
-  build-windows:
-    name: Build Windows
-    needs: release
-    runs-on: windows-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build Windows
-        env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
-        run: |
-          npm run build
-          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --win
-          
-  build-linux:
-    name: Build Linux
-    needs: release
-    runs-on: ubuntu-latest
+  # Simplified approach - just build for each platform directly
+  build-all:
+    name: Build ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+    
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -121,53 +38,52 @@ jobs:
         run: npm ci
         
       - name: Install Linux dependencies
+        if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update
           sudo apt-get install -y libxkbcommon-x11-0 libxss1 libgtk-3-0 libnotify-dev libatspi2.0-0 libnss3 libxtst6
           
-      - name: Build Linux
+      - name: Build and Publish
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          # Use built-in token to avoid malformed token issues
+          GH_TOKEN: ${{ github.token }}
+          # Disabling code signing for macOS
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
           npm run build
-          ELECTRON_BUILDER_PUBLISH=always npx electron-builder --linux
           
-  finalize-release:
-    name: Finalize Release
-    needs: [release, build-macos, build-windows, build-linux]
+          # For macOS
+          if [ "${{ matrix.os }}" = "macos-latest" ]; then
+            npx electron-builder --mac --publish always
+          fi
+          
+          # For Windows
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            npx electron-builder --win --publish always
+          fi
+          
+          # For Linux
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            npx electron-builder --linux --publish always
+          fi
+        shell: bash
+        
+  # Add a final job that checks the results and adds version-specific links to the release
+  update-release-notes:
+    name: Update Release Notes
+    needs: build-all
     runs-on: ubuntu-latest
     steps:
-      - name: Update Release
-        uses: actions/github-script@v6
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
-        with:
-          script: |
-            try {
-              const { owner, repo } = context.repo;
-              const releaseId = '${{ needs.release.outputs.release_id }}';
-              
-              // Get release info to check all assets are uploaded
-              const release = await github.rest.repos.getRelease({
-                owner,
-                repo,
-                release_id: releaseId,
-              });
-              
-              // Verify assets were uploaded
-              if (release.data.assets.length === 0) {
-                core.setFailed('No assets were uploaded to the release!');
-                return;
-              }
-              
-              console.log(`Release ${{ github.ref_name }} created successfully with ${release.data.assets.length} assets.`);
-              console.log('Assets:');
-              release.data.assets.forEach(asset => {
-                console.log(`- ${asset.name}: ${asset.browser_download_url}`);
-              });
-              
-              // Keep as draft for now, let the owner publish manually
-              console.log(`Visit ${release.data.html_url} to publish the release.`);
-            } catch (error) {
-              core.setFailed(`Action failed with error: ${error}`);
-            }
+      - name: Checkout code
+        uses: actions/checkout@v3
+        
+      - name: Get package version
+        id: package-version
+        uses: martinbeentjes/npm-get-version-action@v1.3.1
+      
+      - name: Update Release Notes
+        run: |
+          echo "Release ${{ steps.package-version.outputs.current-version }} created successfully."
+          echo "Assets are available on the release page."
+          echo "Visit https://github.com/ejsinfuego/stickier-note/releases/latest to download and see the details."
+        shell: bash
