@@ -157,8 +157,8 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
-          asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
+          asset_path: "${{ format('./dist/Stickier Note Setup {0}-win-x64.exe', needs.create-draft-release.outputs.version) }}"
+          asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
   # Build for Linux
