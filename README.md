@@ -16,9 +16,12 @@ It is built using Electron and ReactJS. It is designed to be overlayed on top of
 - text formatting (bold, italic)
 - customizable text colors
 
-![stickier_note](https://github.com/user-attachments/assets/f14dd57b-8d2a-46f7-aebf-bfdafa96f891)
+https://github.com/user-attachments/assets/112f69b2-34bc-43eb-86f4-faef44ddbba2
 
 ## Download Instructions
+
+
+
 
 ### Current Version: 1.0.2
 
