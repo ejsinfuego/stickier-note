@@ -24,6 +24,7 @@ function saveNote(noteData: {
   noteColor: string;
   textColor: string;
   textContent: string;
+  htmlContent?: string; // Add optional htmlContent field
 }) {
   console.log('Saving note:', noteData);
   return new Promise((resolve, reject) => {
@@ -73,7 +74,8 @@ function getNote() {
           note: '',
           noteColor: '#FFFF88',
           textColor: '#000000',
-          textContent: ''
+          textContent: '',
+          htmlContent: ''
         };
         // @ts-ignore
         db.insert(defaultNote, (insertErr) => {
@@ -86,7 +88,8 @@ function getNote() {
               note: defaultNote.note,
               noteColor: defaultNote.noteColor,
               textColor: defaultNote.textColor,
-              textContent: defaultNote.textContent
+              textContent: defaultNote.textContent,
+              htmlContent: defaultNote.htmlContent
             });
           }
         });
