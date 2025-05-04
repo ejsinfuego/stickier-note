@@ -244,9 +244,14 @@ jobs:
     name: Update README with Download Links
     needs: [create-draft-release, build-macos, build-windows, build-linux]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+        with:
+          # Use the built-in token with write permissions
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Update README with new version
         run: |
@@ -265,18 +270,23 @@ jobs:
           sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note.Setup..*.exe|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note.Setup.$VERSION.exe|" README.md
           
           # Update Linux download link
-          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*.AppImage|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION.AppImage|" README.md
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*.tar.gz|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION.tar.gz|" README.md
           
-          # Update Linux installation instruction to match version
-          sed -i "s|chmod +x Stickier.Note-.*.AppImage|chmod +x Stickier.Note-$VERSION.AppImage|" README.md
-          sed -i "s|./Stickier.Note-.*.AppImage|./Stickier.Note-$VERSION.AppImage|" README.md
+          # Update Linux installation instruction to match version if needed
+          sed -i "s|tar -xzf Stickier.Note-.*.tar.gz|tar -xzf Stickier.Note-$VERSION.tar.gz|" README.md || echo "No tar extraction instructions found in README"
           
           cat README.md
       
-      - name: Commit and push README update
-        run: |
-          git config --global user.name 'GitHub Actions'
-          git config --global user.email 'github-actions@github.com'
-          git add README.md
-          git commit -m "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
-          git push
+      # Use the dedicated GitHub action for making verified commits
+      - name: Create Pull Request for README update
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
+          title: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
+          body: |
+            This PR updates the README.md file with the latest download links for version ${{ needs.create-draft-release.outputs.version }}.
+            
+            This is an automated PR created by the GitHub Actions workflow.
+          branch: update-readme-v${{ needs.create-draft-release.outputs.version }}
+          base: main
