@@ -88,7 +88,7 @@ jobs:
       - name: List release directory files
         run: |
           echo "Listing release directory contents for debugging:"
-          find ./release -type f -name "*.dmg" | sort
+          find . -type f -name "*.dmg" | sort
       
       # Upload macOS Intel build
       - name: Upload macOS Intel Build
@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/mac/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.dmg
+          asset_path: ./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -108,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/mac-arm64/Stickier.Note-${{ needs.create-draft-release.outputs.version }}.dmg
+          asset_path: ./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -132,15 +132,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
+      - name: List release directory files
+        run: |
+          echo "Listing directory contents for debugging:"
+          dir
+          if (Test-Path -Path .\release) {
+            Get-ChildItem -Path .\release -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
+          } else {
+            echo "Release directory does not exist yet, will check after build"
+          }
+      
       - name: Build Windows
         run: |
           npm run build
           npx electron-builder --win --publish never
-      
-      - name: List release directory files
+          
+      - name: List build output files
         run: |
-          echo "Listing release directory contents for debugging:"
-          Get-ChildItem -Path .\release -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
+          echo "Listing build output:"
+          dir
+          if (Test-Path -Path .\release) {
+            Get-ChildItem -Path .\release -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
+          } else {
+            echo "Release directory does not exist, checking other common locations"
+            Get-ChildItem -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
+          }
       
       # Upload Windows build
       - name: Upload Windows Build
@@ -149,7 +165,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
+          asset_path: ./dist_electron/win-unpacked/Stickier Note.exe
           asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
           asset_content_type: application/octet-stream
 
@@ -183,10 +199,24 @@ jobs:
           npm run build
           npx electron-builder --linux AppImage --publish never
       
-      - name: List release directory files
+      - name: List all files in workspace
         run: |
-          echo "Listing release directory contents for debugging:"
-          find ./release -type f -name "*.AppImage" | sort
+          echo "Listing all relevant files for debugging:"
+          find . -type f -not -path "*/node_modules/*" -not -path "*/\.*" | sort
+      
+      # Create AppImage package from linux-unpacked directory
+      - name: Package Linux build as AppImage
+        run: |
+          # Create simple AppImage structure from linux-unpacked
+          mkdir -p AppDir
+          cp -r ./release/linux-unpacked/* AppDir/
+          
+          # Install appimagetool
+          wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
+          chmod +x appimagetool-x86_64.AppImage
+          
+          # Create AppImage
+          VERSION=${{ needs.create-draft-release.outputs.version }} ./appimagetool-x86_64.AppImage AppDir Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
       
       # Upload Linux build
       - name: Upload Linux Build
@@ -195,7 +225,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier.Note-${{ needs.create-draft-release.outputs.version }}-x86_64.AppImage
+          asset_path: ./Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
           asset_content_type: application/octet-stream
 
