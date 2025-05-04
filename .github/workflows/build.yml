@@ -6,6 +6,13 @@ on:
       - 'v*'  # Push events to matching v*, i.e. v1.0.0, v20.15.10
   workflow_dispatch:  # Allow manual triggering
 
+# Add explicit permissions needed for release creation
+permissions:
+  contents: write
+  packages: write
+  issues: write
+  pull-requests: write
+
 jobs:
   release:
     name: Create Release
