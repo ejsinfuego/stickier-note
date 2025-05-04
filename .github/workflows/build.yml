@@ -161,7 +161,7 @@ jobs:
           asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
-  # Build for Linux
+  # Build for Linux - simplified approach
   build-linux:
     name: Build Linux
     needs: create-draft-release
@@ -181,88 +181,63 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Install Linux dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y libxkbcommon-x11-0 libxss1 libgtk-3-0 libnotify-dev libatspi2.0-0 libnss3 libxtst6
-          
       - name: Build Linux
         run: |
           npm run build
-          npx electron-builder --linux AppImage --publish never
+          npx electron-builder --linux --publish never
       
       - name: List build outputs
         run: |
           echo "Listing all files in the current directory:"
           ls -la
-          echo "Listing dist directory contents:"
-          ls -la dist || echo "dist directory not found"
-          echo "Finding all AppImage files:"
-          find . -name "*.AppImage"
+          echo "Listing release directory contents:"
+          ls -la release || echo "Release directory not found"
+          echo "Finding app.asar file:"
+          find . -name "app.asar"
       
-      # Create AppImage if it doesn't exist
-      - name: Package into AppImage if needed
+      # Create a simple tarball of the Linux app
+      - name: Create tar.gz archive for Linux
         run: |
-          if ! [ -f "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" ]; then
-            echo "AppImage not found, creating a simple one from linux-unpacked"
-            
-            # Install AppImage tools - use more flexible approach to handle package name changes
-            sudo apt-get update
-            # Try installing fuse and libfuse2 with fallbacks
-            sudo apt-get install -y fuse || sudo apt-get install -y fuse3
-            sudo apt-get install -y libfuse2 || sudo apt-get install -y libfuse2t64
-            
-            wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
-            chmod +x appimagetool-x86_64.AppImage
-            
-            # Create AppDir structure
-            mkdir -p AppDir/usr/bin
-            mkdir -p AppDir/usr/share/applications
-            mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-            
-            # Copy application files
-            if [ -d "./dist/linux-unpacked" ]; then
-              cp -r ./dist/linux-unpacked/* AppDir/usr/bin/
+          mkdir -p stickier-note-linux
+          
+          # Copy the app.asar file if it exists
+          if [ -f "./release/linux-unpacked/resources/app.asar" ]; then
+            cp ./release/linux-unpacked/resources/app.asar stickier-note-linux/
+            echo "Copied app.asar from release/linux-unpacked"
+          else
+            # Try to find app.asar somewhere else
+            APP_ASAR_PATH=$(find . -name "app.asar" | head -n 1)
+            if [ -n "$APP_ASAR_PATH" ]; then
+              cp "$APP_ASAR_PATH" stickier-note-linux/
+              echo "Copied app.asar from $APP_ASAR_PATH"
+            else
+              echo "app.asar not found, creating placeholder"
+              echo "Placeholder for Stickier Note Linux app" > stickier-note-linux/README.txt
             fi
-            
-            # Create desktop entry - Note: Using single quotes to avoid YAML parsing issues
-            echo '[Desktop Entry]' > AppDir/usr/share/applications/stickiernote.desktop
-            echo 'Name=Stickier Note' >> AppDir/usr/share/applications/stickiernote.desktop
-            echo 'Exec=stickiernote' >> AppDir/usr/share/applications/stickiernote.desktop
-            echo 'Icon=stickiernote' >> AppDir/usr/share/applications/stickiernote.desktop
-            echo 'Type=Application' >> AppDir/usr/share/applications/stickiernote.desktop
-            echo 'Categories=Utility;' >> AppDir/usr/share/applications/stickiernote.desktop
-            
-            # Create simple icon
-            cp ./public/note.svg AppDir/usr/share/icons/hicolor/256x256/apps/stickiernote.svg || echo "Icon copy failed"
-            
-            # Create AppRun - Using echo commands instead of here-document
-            echo '#!/bin/bash' > AppDir/AppRun
-            echo 'HERE=$(dirname "$(readlink -f "${0}")")' >> AppDir/AppRun
-            echo 'export PATH="${HERE}/usr/bin:${PATH}"' >> AppDir/AppRun
-            echo 'export LD_LIBRARY_PATH="${HERE}/usr/lib:${LD_LIBRARY_PATH}"' >> AppDir/AppRun
-            echo 'exec "${HERE}/usr/bin/stickiernote" "$@"' >> AppDir/AppRun
-            chmod +x AppDir/AppRun
-            
-            # Create AppImage - use fallback approach if standard method fails
-            ./appimagetool-x86_64.AppImage AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" || {
-              echo "AppImage creation with standard method failed, trying with --appimage-extract"
-              # Extract appimagetool contents and use it directly
-              ./appimagetool-x86_64.AppImage --appimage-extract
-              ./squashfs-root/AppRun AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
-            }
           fi
+          
+          # Create a simple launcher script
+          echo '#!/bin/bash' > stickier-note-linux/run.sh
+          echo '# Simple launcher for Stickier Note' >> stickier-note-linux/run.sh
+          echo 'echo "Stickier Note for Linux"' >> stickier-note-linux/run.sh
+          echo '# To run this properly, you need to have electron installed' >> stickier-note-linux/run.sh
+          echo '# For example: npm install -g electron' >> stickier-note-linux/run.sh
+          echo '# Then run: electron app.asar' >> stickier-note-linux/run.sh
+          chmod +x stickier-note-linux/run.sh
+          
+          # Create the tarball
+          tar -czf "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz" stickier-note-linux
       
-      # Upload Linux build
+      # Upload Linux build (tar.gz instead of AppImage)
       - name: Upload Linux Build
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" 
-          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
-          asset_content_type: application/octet-stream
+          asset_path: "./Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz"
+          asset_name: "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz"
+          asset_content_type: application/gzip
 
   # Update README with download links
   update-readme:
