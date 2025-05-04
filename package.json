@@ -20,7 +20,8 @@
   "scripts": {
     "clean": "rimraf dist",
     "dev": "tsc main.ts database.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run clean && tsc --project tsconfig.json && vite build",
+    "build": "npm run clean && tsc --project tsconfig.json && vite build && npm run copy-deps",
+    "copy-deps": "mkdir -p dist/node_modules && cp -r node_modules/nedb node_modules/mkdirp node_modules/binary-search-tree node_modules/underscore node_modules/minimist node_modules/async dist/node_modules/",
     "lint": "eslint .",
     "preview": "vite preview",
     "package": "npm run build && electron-builder",
@@ -36,85 +37,45 @@
     "appId": "com.example.stickier-note",
     "copyright": "Copyright 2025 Ej Sinfuego",
     "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
-    "win": {
-      "target": "nsis",
-      "icon": "src/assets/note.ico"
-    },
     "productName": "Stickier Note",
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "Stickier Note"
-    },
     "files": [
       "dist/**/*",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "extraFiles": [
-      {
-        "from": "assets",
-        "to": "assets"
-      }
+      "package.json"
     ],
     "extraResources": [
       {
-        "from": "assets",
-        "to": "assets"
-      },
-      {
         "from": "dist/database.js",
         "to": "database.cjs"
-      },
+      }
+    ],
+    "extraFiles": [
       {
-        "from": "node_modules/nedb",
-        "to": "node_modules/nedb"
-      },
-      {
-        "from": "node_modules/underscore",
-        "to": "node_modules/underscore"
-      },
-      {
-        "from": "node_modules/async",
-        "to": "node_modules/async"
-      },
-      {
-        "from": "node_modules/binary-search-tree",
-        "to": "node_modules/binary-search-tree"
-      },
-      {
-        "from": "node_modules/mkdirp",
-        "to": "node_modules/mkdirp"
+        "from": "dist/node_modules/",
+        "to": "Resources/node_modules/"
       }
     ],
     "asarUnpack": [
-      "node_modules/nedb",
-      "node_modules/underscore",
-      "node_modules/async",
-      "node_modules/binary-search-tree",
-      "node_modules/mkdirp"
+      "node_modules/nedb/**/*",
+      "node_modules/underscore/**/*",
+      "node_modules/async/**/*",
+      "node_modules/binary-search-tree/**/*", 
+      "node_modules/mkdirp/**/*",
+      "node_modules/minimist/**/*"
     ],
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
+    "buildDependenciesFromSource": false,
+    "electronDist": "node_modules/electron/dist",
+    "directories": {
+      "buildResources": "src/assets",
+      "output": "release"
+    },
     "publish": {
       "provider": "github",
       "owner": "ejsinfuego",
       "repo": "stickier-note",
       "releaseType": "draft",
       "private": false
-    },
-    "directories": {
-      "buildResources": "src/assets"
-    },
-    "linux": {
-      "target": [
-        {
-          "target": "AppImage",
-          "arch": [
-            "x64"
-          ]
-        }
-      ]
     },
     "mac": {
       "target": [
@@ -125,9 +86,46 @@
             "arm64"
           ]
         }
-      ], 
+      ],
       "icon": "src/assets/note.icns",
       "category": "public.app-category.productivity"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "src/assets/note.ico",
+      "compression": "maximum"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Stickier Note",
+      "perMachine": false,
+      "differentialPackage": true
+    },
+    "linux": {
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "maintainer": "firespark",
+      "vendor": "firespark",
+      "synopsis": "A minimal sticky note application",
+      "description": "A minimal sticky note application that's like stickier",
+      "compression": "maximum"
     }
   },
   "dependencies": {

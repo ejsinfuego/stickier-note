@@ -1,7 +1,23 @@
 const fs = require('fs');
-const Datastore = require('nedb');
 const path2 = require('path');
 const { app: elect } = require('electron');
+
+// Try to find nedb in different locations depending on if we're in development or production
+let Datastore;
+try {
+  // First try the standard require
+  Datastore = require('nedb');
+} catch (err) {
+  try {
+    // If in a packaged app, try to load from the Resources folder
+    const appPath = elect.getAppPath();
+    const resourcesPath = path2.join(appPath, '..', 'Resources');
+    Datastore = require(path2.join(resourcesPath, 'node_modules', 'nedb'));
+  } catch (err2) {
+    console.error('Failed to load nedb:', err2);
+    throw new Error(`Could not find nedb module: ${err2.message}`);
+  }
+}
 
 const dbDir = elect.getPath('userData'); 
 const dbPath = path2.join(dbDir, 'stickier-notes.db');

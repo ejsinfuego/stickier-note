@@ -101,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
+          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
+          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -157,7 +157,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
+          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
           asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
@@ -199,6 +199,7 @@ jobs:
       - name: Create tar.gz archive for Linux
         run: |
           mkdir -p stickier-note-linux
+          mkdir -p stickier-note-linux/node_modules
           
           # Copy the app.asar file if it exists
           if [ -f "./release/linux-unpacked/resources/app.asar" ]; then
@@ -215,6 +216,14 @@ jobs:
               echo "Placeholder for Stickier Note Linux app" > stickier-note-linux/README.txt
             fi
           fi
+          
+          # Copy the nedb and dependency modules
+          cp -r dist/node_modules/nedb stickier-note-linux/node_modules/ || echo "nedb not found in dist"
+          cp -r dist/node_modules/mkdirp stickier-note-linux/node_modules/ || echo "mkdirp not found in dist"
+          cp -r dist/node_modules/binary-search-tree stickier-note-linux/node_modules/ || echo "binary-search-tree not found in dist"
+          cp -r dist/node_modules/underscore stickier-note-linux/node_modules/ || echo "underscore not found in dist"
+          cp -r dist/node_modules/minimist stickier-note-linux/node_modules/ || echo "minimist not found in dist"
+          cp -r dist/node_modules/async stickier-note-linux/node_modules/ || echo "async not found in dist"
           
           # Create a simple launcher script
           echo '#!/bin/bash' > stickier-note-linux/run.sh
@@ -251,7 +260,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           # Use the built-in token with write permissions
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
       
       - name: Update README with new version
         run: |
@@ -281,7 +290,7 @@ jobs:
       - name: Create Pull Request for README update
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
           commit-message: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
           title: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
           body: |
