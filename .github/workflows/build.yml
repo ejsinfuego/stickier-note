@@ -101,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -145,8 +145,8 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           dir
-          echo "Listing release directory contents:"
-          dir release
+          echo "Listing dist directory contents:"
+          dir dist
           echo "Finding all EXE files:"
           Get-ChildItem -Path . -Recurse -Include "*.exe" | ForEach-Object { $_.FullName }
       
@@ -157,7 +157,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
+          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
           asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
           asset_content_type: application/octet-stream
 
@@ -195,15 +195,15 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           ls -la
-          echo "Listing release directory contents:"
-          ls -la release || echo "Release directory not found"
+          echo "Listing dist directory contents:"
+          ls -la dist || echo "dist directory not found"
           echo "Finding all AppImage files:"
           find . -name "*.AppImage"
       
       # Create AppImage if it doesn't exist
       - name: Package into AppImage if needed
         run: |
-          if ! [ -f "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" ]; then
+          if ! [ -f "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" ]; then
             echo "AppImage not found, creating a simple one from linux-unpacked"
             
             # Install AppImage tools
@@ -217,8 +217,8 @@ jobs:
             mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
             
             # Copy application files
-            if [ -d "./release/linux-unpacked" ]; then
-              cp -r ./release/linux-unpacked/* AppDir/usr/bin/
+            if [ -d "./dist/linux-unpacked" ]; then
+              cp -r ./dist/linux-unpacked/* AppDir/usr/bin/
             fi
             
             # Create desktop entry
@@ -245,7 +245,7 @@ jobs:
             chmod +x AppDir/AppRun
             
             # Create AppImage
-            ./appimagetool-x86_64.AppImage AppDir "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+            ./appimagetool-x86_64.AppImage AppDir "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
           fi
       
       # Upload Linux build
@@ -255,7 +255,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" 
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage" 
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
           asset_content_type: application/octet-stream
 
