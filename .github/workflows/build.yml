@@ -53,25 +53,11 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Import Code-Signing Certificates
-        if: startsWith(github.ref, 'refs/tags/')
-        uses: apple-actions/import-codesign-certs@v1
-        with:
-          p12-file-base64: ${{ secrets.MACOS_CERTIFICATE }}
-          p12-password: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          keychain: build.keychain
-          keychain-password: build.keychain
-        continue-on-error: true
-        
       - name: Build macOS
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.MACOS_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
-          # For notarization, if you have it set up
-          APPLE_ID: ${{ secrets.APPLE_ID }}
-          APPLE_ID_PASSWORD: ${{ secrets.APPLE_ID_PASSWORD }}
-          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # Disabling code signing
+          CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
           npm run build
           npx electron-builder --mac --publish always
@@ -98,8 +84,6 @@ jobs:
       - name: Build Windows
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          CSC_LINK: ${{ secrets.WINDOWS_CERTIFICATE }}
-          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CERTIFICATE_PWD }}
         run: |
           npm run build
           npx electron-builder --win --publish always
