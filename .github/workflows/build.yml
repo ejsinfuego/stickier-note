@@ -51,7 +51,7 @@ jobs:
             
             ## Download the appropriate package for your platform
             - Windows: [Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe)
-            - Linux: [Stickier.Note-${{ steps.get_version.outputs.version }}.tar.gz](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}.tar.gz)
+            - Linux: [Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage)
             
             ### Manual macOS build
             macOS builds will be uploaded manually by the maintainer.
@@ -133,7 +133,7 @@ jobs:
           echo "Listing all files in the current directory:"
           ls -la
           echo "Listing release directory contents:"
-          ls -la release || echo "Release directory not found"
+          ls -la release || echo "release directory not found"
           echo "Finding app.asar file:"
           find . -name "app.asar"
       
