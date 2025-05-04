@@ -23,12 +23,10 @@ jobs:
     steps:
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        uses: softprops/action-gh-release@v1
         with:
-          tag_name: ${{ github.ref }}
-          release_name: Stickier Note ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name }}
+          name: Stickier Note ${{ github.ref_name }}
           draft: true
           prerelease: false
           body: |
@@ -62,7 +60,7 @@ jobs:
         
       - name: Build macOS
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
           # Disabling code signing
           CSC_IDENTITY_AUTO_DISCOVERY: false
         run: |
@@ -90,7 +88,7 @@ jobs:
         
       - name: Build Windows
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run build
           npx electron-builder --win --publish always
@@ -121,7 +119,7 @@ jobs:
           
       - name: Build Linux
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           npm run build
           npx electron-builder --linux --publish always
