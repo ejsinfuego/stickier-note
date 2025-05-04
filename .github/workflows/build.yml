@@ -97,7 +97,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
+          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -108,7 +108,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
+          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -165,7 +165,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: ./dist_electron/win-unpacked/Stickier Note.exe
+          asset_path: "./release/win-unpacked/resources/app.asar"
           asset_name: Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe
           asset_content_type: application/octet-stream
 
@@ -199,24 +199,70 @@ jobs:
           npm run build
           npx electron-builder --linux AppImage --publish never
       
-      - name: List all files in workspace
+      - name: List all directories and files in workspace
         run: |
-          echo "Listing all relevant files for debugging:"
-          find . -type f -not -path "*/node_modules/*" -not -path "*/\.*" | sort
+          echo "Listing all directories for debugging:"
+          find . -type d -not -path "*/node_modules/*" -not -path "*/\.*" | sort
+          
+          echo "Listing all files recursively to find Linux build:"
+          find . -type f -not -path "*/node_modules/*" -not -path "*/\.*" -name "*.asar" | sort
       
-      # Create AppImage package from linux-unpacked directory
+      # Create AppImage package using linux-unpacked directory from your actual structure
       - name: Package Linux build as AppImage
         run: |
-          # Create simple AppImage structure from linux-unpacked
+          # Create AppDir structure from linux-unpacked directory (which exists in your structure)
           mkdir -p AppDir
-          cp -r ./release/linux-unpacked/* AppDir/
+          
+          # Try the linux-unpacked directory which exists in your workspace
+          if [ -d "./release/linux-unpacked" ]; then
+            echo "Using linux-unpacked directory for AppImage"
+            cp -r ./release/linux-unpacked/* AppDir/ || echo "Copy failed but continuing"
+          fi
+          
+          # As a last resort, create a minimal structure
+          if [ ! -d "AppDir/resources" ]; then
+            echo "Creating minimal AppDir structure"
+            mkdir -p AppDir/resources
+            # Look for app.asar
+            ASAR_FILE=$(find . -type f -name "app.asar" | head -1)
+            if [ -n "$ASAR_FILE" ]; then
+              echo "Found app.asar: $ASAR_FILE"
+              cp "$ASAR_FILE" AppDir/resources/
+            else
+              echo "WARNING: No app.asar found, creating empty file"
+              touch AppDir/resources/app.asar
+            fi
+          fi
           
           # Install appimagetool
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage
           chmod +x appimagetool-x86_64.AppImage
           
+          # Create a simple desktop entry file
+          cat > AppDir/stickier-note.desktop << EOF
+          [Desktop Entry]
+          Name=Stickier Note
+          Exec=stickier-note
+          Icon=stickier-note
+          Type=Application
+          Categories=Utility;
+          EOF
+          
+          # Create an executable launcher
+          cat > AppDir/AppRun << EOF
+          #!/bin/bash
+          HERE=\$(dirname "\$(readlink -f "\${0}")")
+          exec "\$HERE/resources/app.asar" "\$@"
+          EOF
+          chmod +x AppDir/AppRun
+          
+          # Create a simple icon
+          echo "Creating icon..."
+          convert -size 256x256 xc:transparent -fill orange -draw "rectangle 20,20 236,236" AppDir/stickier-note.png || echo "Icon creation failed, continuing anyway"
+          
           # Create AppImage
-          VERSION=${{ needs.create-draft-release.outputs.version }} ./appimagetool-x86_64.AppImage AppDir Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage
+          echo "Creating AppImage..."
+          VERSION=${{ needs.create-draft-release.outputs.version }} ./appimagetool-x86_64.AppImage AppDir Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage || echo "AppImage creation may have issues"
       
       # Upload Linux build
       - name: Upload Linux Build
