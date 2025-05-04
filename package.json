@@ -2,7 +2,7 @@
   "name": "stickier-note",
   "private": true,
   "version": "1.0.2",
-  "main": "dist/main.js",
+  "main": "dist-electron/main.js",
   "types": "./index.d.ts",
   "description": "A minimal sticky note application that's like stickier",
   "author": {
@@ -18,18 +18,18 @@
     "url": "https://github.com/ejsinfuego/stickier-note"
   },
   "scripts": {
-    "clean": "rimraf dist",
-    "dev": "tsc main.ts database.ts --outDir dist && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run clean && tsc --project tsconfig.json && vite build && npm run copy-deps",
-    "copy-deps": "mkdir -p dist/node_modules && cp -r node_modules/nedb node_modules/mkdirp node_modules/binary-search-tree node_modules/underscore node_modules/minimist node_modules/async dist/node_modules/",
+    "clean": "rimraf dist dist-electron",
+    "dev": "tsc main.ts database.ts --outDir dist-electron && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
+    "build": "npm run clean && tsc --project tsconfig.json && tsc main.ts database.ts --outDir dist-electron && vite build",
+    "build:optimized": "npm run build && node optimize-build.js",
     "lint": "eslint .",
     "preview": "vite preview",
-    "package": "npm run build && electron-builder",
-    "package:mac": "npm run build && electron-builder --mac",
-    "package:win": "npm run build && electron-builder --win",
-    "package:linux": "npm run build && electron-builder --linux",
-    "package:all": "npm run build && electron-builder -mwl",
-    "publish": "npm run build && electron-builder --publish always"
+    "package": "npm run build:optimized && electron-builder",
+    "package:mac": "npm run build:optimized && electron-builder --mac",
+    "package:win": "npm run build:optimized && electron-builder --win",
+    "package:linux": "npm run build:optimized && electron-builder --linux",
+    "package:all": "npm run build:optimized && electron-builder -mwl",
+    "publish": "npm run build:optimized && electron-builder --publish always"
   },
   "asar": true,
   "compression": "maximum",
@@ -40,18 +40,57 @@
     "productName": "Stickier Note",
     "files": [
       "dist/**/*",
-      "package.json"
+      "dist-electron/**/*",
+      "package.json",
+      "node_modules/nedb/**/*",
+      "node_modules/binary-search-tree/**/*",
+      "node_modules/immediate/**/*",
+      "node_modules/underscore/**/*",
+      "node_modules/mkdirp/**/*",
+      "node_modules/minimist/**/*",
+      "node_modules/async/**/*",
+      "node_modules/localforage/**/*"
     ],
     "extraResources": [
       {
-        "from": "dist/database.js",
-        "to": "database.cjs"
-      }
-    ],
-    "extraFiles": [
+        "from": "src/assets",
+        "to": "assets"
+      },
       {
-        "from": "dist/node_modules/",
-        "to": "Resources/node_modules/"
+        "from": "dist-electron/database.js",
+        "to": "database.cjs"
+      },
+      {
+        "from": "node_modules/nedb",
+        "to": "node_modules/nedb"
+      },
+      {
+        "from": "node_modules/binary-search-tree",
+        "to": "node_modules/binary-search-tree"
+      },
+      {
+        "from": "node_modules/underscore",
+        "to": "node_modules/underscore"
+      },
+      {
+        "from": "node_modules/async",
+        "to": "node_modules/async"
+      },
+      {
+        "from": "node_modules/mkdirp",
+        "to": "node_modules/mkdirp"
+      },
+      {
+        "from": "node_modules/minimist",
+        "to": "node_modules/minimist"
+      },
+      {
+        "from": "node_modules/immediate",
+        "to": "node_modules/immediate"
+      },
+      {
+        "from": "node_modules/localforage",
+        "to": "node_modules/localforage"
       }
     ],
     "asarUnpack": [
@@ -65,17 +104,16 @@
     "npmRebuild": false,
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
-    "electronDist": "node_modules/electron/dist",
-    "directories": {
-      "buildResources": "src/assets",
-      "output": "dist"
-    },
     "publish": {
       "provider": "github",
       "owner": "ejsinfuego",
       "repo": "stickier-note",
       "releaseType": "draft",
       "private": false
+    },
+    "directories": {
+      "buildResources": "src/assets",
+      "output": "dist"
     },
     "mac": {
       "target": [
@@ -150,6 +188,7 @@
     "globals": "^15.15.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^4.1.1",
+    "terser": "^5.39.0",
     "typescript": "~5.7.2",
     "typescript-eslint": "^8.24.1",
     "vite": "^6.2.0",

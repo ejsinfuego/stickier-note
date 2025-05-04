@@ -38,13 +38,25 @@ function checkForUpdates(currentVersion: string) {
         
         // Compare versions (simple string comparison works for semver like 1.0.2)
         if (latestVersion > currentVersion) {
+          interface UpdateDialogOptions {
+            type: 'info';
+            title: string;
+            message: string;
+            buttons: string[];
+            detail: string;
+          }
+
+          interface UpdateDialogResult {
+            response: number;
+          }
+
           dialog.showMessageBox({
             type: 'info',
             title: 'Update Available',
             message: `A new version (${latestVersion}) is available!`,
             buttons: ['Download', 'Later'],
             detail: 'Would you like to download the latest version?'
-          }).then((result) => {
+          } as UpdateDialogOptions).then((result: UpdateDialogResult) => {
             if (result.response === 0) {
               // Open the release page in the default browser
               require('electron').shell.openExternal(release.html_url);
@@ -95,8 +107,8 @@ try {
   
    
     if (app.isPackaged) {
-      // In a packaged app, __dirname points to the app.asar directory
-      mainWindow.loadFile(path.join(__dirname, 'index.html'));
+      // In a packaged app, load from dist directory
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     } else {
       mainWindow.loadURL('http://localhost:5173');
     }

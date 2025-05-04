@@ -45,76 +45,18 @@ jobs:
             # Stickier Note v${{ steps.get_version.outputs.version }} Release
             
             ## What's Changed
-            * Optimized application size (93% smaller!)
+            * Optimized application size
             * Improved performance
             * Better user experience
             
             ## Download the appropriate package for your platform
-            - macOS Intel: [Stickier.Note-${{ steps.get_version.outputs.version }}-mac-x64.dmg](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}-mac-x64.dmg)
-            - macOS Apple Silicon: [Stickier.Note-${{ steps.get_version.outputs.version }}-mac-arm64.dmg](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}-mac-arm64.dmg)
             - Windows: [Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note.Setup.${{ steps.get_version.outputs.version }}.exe)
             - Linux: [Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage](https://github.com/ejsinfuego/stickier-note/releases/download/v${{ steps.get_version.outputs.version }}/Stickier.Note-${{ steps.get_version.outputs.version }}.AppImage)
             
+            ### Manual macOS build
+            macOS builds will be uploaded manually by the maintainer.
+            
             See installation instructions in the [README](https://github.com/ejsinfuego/stickier-note#installation-instructions)
-
-  # Build for macOS (both Intel and Apple Silicon)
-  build-macos:
-    name: Build macOS
-    needs: create-draft-release
-    runs-on: macos-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: 20
-          cache: 'npm'
-          
-      - name: Install dependencies
-        run: npm ci
-        
-      - name: Build macOS
-        env:
-          # Disabling code signing
-          CSC_IDENTITY_AUTO_DISCOVERY: false
-        run: |
-          npm run build
-          npx electron-builder --mac --x64 --arm64 --publish never
-      
-      - name: List build outputs
-        run: |
-          echo "Listing all files in the current directory:"
-          ls -la
-          echo "Listing dist directory contents:"
-          ls -la dist || echo "dist directory not found"
-          echo "Finding all DMG files:"
-          find . -name "*.dmg"
-      
-      # Upload macOS Intel build
-      - name: Upload macOS Intel Build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
-          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
-          asset_content_type: application/octet-stream
-          
-      # Upload macOS Apple Silicon build
-      - name: Upload macOS Apple Silicon Build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-        with:
-          upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
-          asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
-          asset_content_type: application/octet-stream
 
   # Build for Windows
   build-windows:
@@ -138,7 +80,7 @@ jobs:
         
       - name: Build Windows
         run: |
-          npm run build
+          npm run build:optimized
           npx electron-builder --win --publish never
       
       - name: List build outputs
@@ -157,11 +99,11 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
+          asset_path: "./dist/Stickier Note Setup ${{ needs.create-draft-release.outputs.version }}.exe"
           asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
-  # Build for Linux - simplified approach
+  # Build for Linux
   build-linux:
     name: Build Linux
     needs: create-draft-release
@@ -183,7 +125,7 @@ jobs:
         
       - name: Build Linux
         run: |
-          npm run build
+          npm run build:optimized
           npx electron-builder --linux --publish never
       
       - name: List build outputs
@@ -195,63 +137,20 @@ jobs:
           echo "Finding app.asar file:"
           find . -name "app.asar"
       
-      # Create a simple tarball of the Linux app
-      - name: Create tar.gz archive for Linux
-        run: |
-          mkdir -p stickier-note-linux
-          mkdir -p stickier-note-linux/node_modules
-          
-          # Copy the app.asar file if it exists
-          if [ -f "./dist/linux-unpacked/resources/app.asar" ]; then
-            cp ./dist/linux-unpacked/resources/app.asar stickier-note-linux/
-            echo "Copied app.asar from dist/linux-unpacked"
-          else
-            # Try to find app.asar somewhere else
-            APP_ASAR_PATH=$(find . -name "app.asar" | head -n 1)
-            if [ -n "$APP_ASAR_PATH" ]; then
-              cp "$APP_ASAR_PATH" stickier-note-linux/
-              echo "Copied app.asar from $APP_ASAR_PATH"
-            else
-              echo "app.asar not found, creating placeholder"
-              echo "Placeholder for Stickier Note Linux app" > stickier-note-linux/README.txt
-            fi
-          fi
-          
-          # Copy the nedb and dependency modules
-          cp -r dist/node_modules/nedb stickier-note-linux/node_modules/ || echo "nedb not found in dist"
-          cp -r dist/node_modules/mkdirp stickier-note-linux/node_modules/ || echo "mkdirp not found in dist"
-          cp -r dist/node_modules/binary-search-tree stickier-note-linux/node_modules/ || echo "binary-search-tree not found in dist"
-          cp -r dist/node_modules/underscore stickier-note-linux/node_modules/ || echo "underscore not found in dist"
-          cp -r dist/node_modules/minimist stickier-note-linux/node_modules/ || echo "minimist not found in dist"
-          cp -r dist/node_modules/async stickier-note-linux/node_modules/ || echo "async not found in dist"
-          
-          # Create a simple launcher script
-          echo '#!/bin/bash' > stickier-note-linux/run.sh
-          echo '# Simple launcher for Stickier Note' >> stickier-note-linux/run.sh
-          echo 'echo "Stickier Note for Linux"' >> stickier-note-linux/run.sh
-          echo '# To run this properly, you need to have electron installed' >> stickier-note-linux/run.sh
-          echo '# For example: npm install -g electron' >> stickier-note-linux/run.sh
-          echo '# Then run: electron app.asar' >> stickier-note-linux/run.sh
-          chmod +x stickier-note-linux/run.sh
-          
-          # Create the tarball
-          tar -czf "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz" stickier-note-linux
-      
-      # Upload Linux build (tar.gz instead of AppImage)
-      - name: Upload Linux Build
+      - name: Upload Linux AppImage
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz"
-          asset_name: "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.tar.gz"
-          asset_content_type: application/gzip
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+          asset_name: "Stickier.Note-${{ needs.create-draft-release.outputs.version }}.AppImage"
+          asset_content_type: application/octet-stream
 
   # Update README with download links
   update-readme:
     name: Update README with Download Links
-    needs: [create-draft-release, build-macos, build-windows, build-linux]
+    needs: [create-draft-release, build-windows, build-linux]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -260,7 +159,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           # Use the built-in token with write permissions
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
       
       - name: Update README with new version
         run: |
@@ -269,20 +168,11 @@ jobs:
           # Update README.md with new version and download links
           sed -i "s/### Current Version: .*/### Current Version: $VERSION/" README.md
           
-          # Update macOS Intel download link
-          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*-mac-x64.dmg|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION-mac-x64.dmg|" README.md
-          
-          # Update macOS Apple Silicon download link
-          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*-mac-arm64.dmg|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION-mac-arm64.dmg|" README.md
-          
           # Update Windows download link
           sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note.Setup..*.exe|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note.Setup.$VERSION.exe|" README.md
           
           # Update Linux download link
-          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*.tar.gz|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION.tar.gz|" README.md
-          
-          # Update Linux installation instruction to match version if needed
-          sed -i "s|tar -xzf Stickier.Note-.*.tar.gz|tar -xzf Stickier.Note-$VERSION.tar.gz|" README.md || echo "No tar extraction instructions found in README"
+          sed -i "s|https://github.com/ejsinfuego/stickier-note/releases/latest/download/Stickier.Note-.*.AppImage|https://github.com/ejsinfuego/stickier-note/releases/download/v$VERSION/Stickier.Note-$VERSION.AppImage|" README.md
           
           cat README.md
       
@@ -290,7 +180,7 @@ jobs:
       - name: Create Pull Request for README update
         uses: peter-evans/create-pull-request@v5
         with:
-          token: ${{ secrets.GH_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
           title: "Update README with download links for v${{ needs.create-draft-release.outputs.version }}"
           body: |
