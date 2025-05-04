@@ -89,8 +89,8 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           ls -la
-          echo "Listing release directory contents:"
-          ls -la release || echo "Release directory not found"
+          echo "Listing dist directory contents:"
+          ls -la dist || echo "dist directory not found"
           echo "Finding all DMG files:"
           find . -name "*.dmg"
       
@@ -101,7 +101,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-x64.dmg
           asset_content_type: application/octet-stream
           
@@ -112,7 +112,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg"
           asset_name: Stickier.Note-${{ needs.create-draft-release.outputs.version }}-mac-arm64.dmg
           asset_content_type: application/octet-stream
 
@@ -157,7 +157,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           upload_url: ${{ needs.create-draft-release.outputs.upload_url }}
-          asset_path: "./release/Stickier Note-${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
+          asset_path: "./dist/Stickier Note-${{ needs.create-draft-release.outputs.version }}-win-x64.exe"
           asset_name: "Stickier.Note.Setup.${{ needs.create-draft-release.outputs.version }}.exe"
           asset_content_type: application/octet-stream
 
@@ -190,8 +190,8 @@ jobs:
         run: |
           echo "Listing all files in the current directory:"
           ls -la
-          echo "Listing release directory contents:"
-          ls -la release || echo "Release directory not found"
+          echo "Listing dist directory contents:"
+          ls -la dist || echo "dist directory not found"
           echo "Finding app.asar file:"
           find . -name "app.asar"
       
@@ -202,9 +202,9 @@ jobs:
           mkdir -p stickier-note-linux/node_modules
           
           # Copy the app.asar file if it exists
-          if [ -f "./release/linux-unpacked/resources/app.asar" ]; then
-            cp ./release/linux-unpacked/resources/app.asar stickier-note-linux/
-            echo "Copied app.asar from release/linux-unpacked"
+          if [ -f "./dist/linux-unpacked/resources/app.asar" ]; then
+            cp ./dist/linux-unpacked/resources/app.asar stickier-note-linux/
+            echo "Copied app.asar from dist/linux-unpacked"
           else
             # Try to find app.asar somewhere else
             APP_ASAR_PATH=$(find . -name "app.asar" | head -n 1)

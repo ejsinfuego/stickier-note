@@ -68,7 +68,7 @@
     "electronDist": "node_modules/electron/dist",
     "directories": {
       "buildResources": "src/assets",
-      "output": "release"
+      "output": "dist"
     },
     "publish": {
       "provider": "github",
