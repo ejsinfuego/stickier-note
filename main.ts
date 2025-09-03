@@ -89,6 +89,7 @@ try {
       alwaysOnTop: true,
       frame: false,
       transparent: true,
+      backgroundColor: '#00000000',
       hasShadow: false,
       webPreferences: {
         nodeIntegration: true,
@@ -96,21 +97,27 @@ try {
       },
       roundedCorners: true,
       resizable: true,
+      useContentSize: true,
       movable: true,
       minimizable: true,
       closable: true,
-      backgroundMaterial: 'none',
-      vibrancy: 'under-window',
-      visualEffectState: 'active',
+      // Remove vibrancy/visual effects to avoid gray background during resize
+      // backgroundMaterial: 'none',
+      // vibrancy: 'under-window',
+      // visualEffectState: 'active',
       
     });
+
+    // Ensure the window background is fully transparent
+    mainWindow.setBackgroundColor('#00000000');
   
    
     if (app.isPackaged) {
       // In a packaged app, load from dist directory
       mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     } else {
-      mainWindow.loadURL('http://localhost:5173');
+      // In development, load from dist directory after building
+      mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
     }
   
     ipcMain.on('set-opacity', (_: Electron.IpcMainEvent, opacity: number) => {
@@ -120,6 +127,10 @@ try {
   
     ipcMain.on('minimize-window', () => {
       mainWindow.minimize();
+    });
+
+    ipcMain.on('close-window', () => {
+      mainWindow.close();
     });
     
     interface IgnoreMouseEventsOptions {
@@ -173,11 +184,7 @@ try {
   });
 
   
-} catch (error) {
+  } catch (error) {
   console.error('Failed to load database module:', error);
   app.quit();
 }
-const { saveNote: dbSaveNote, getNote: dbGetNote } = require(databasePath);
-
-
-

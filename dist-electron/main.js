@@ -106,6 +106,7 @@ try {
             alwaysOnTop: true,
             frame: false,
             transparent: true,
+            backgroundColor: '#00000000',
             hasShadow: false,
             webPreferences: {
                 nodeIntegration: true,
@@ -113,19 +114,24 @@ try {
             },
             roundedCorners: true,
             resizable: true,
+            useContentSize: true,
             movable: true,
             minimizable: true,
             closable: true,
-            backgroundMaterial: 'none',
-            vibrancy: 'under-window',
-            visualEffectState: 'active',
+            // Remove vibrancy/visual effects to avoid gray background during resize
+            // backgroundMaterial: 'none',
+            // vibrancy: 'under-window',
+            // visualEffectState: 'active',
         });
+        // Ensure the window background is fully transparent
+        mainWindow.setBackgroundColor('#00000000');
         if (app.isPackaged) {
             // In a packaged app, load from dist directory
             mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
         }
         else {
-            mainWindow.loadURL('http://localhost:5173');
+            // In development, load from dist directory after building
+            mainWindow.loadFile(path.join(__dirname, '../dist/index.html'));
         }
         ipcMain.on('set-opacity', function (_, opacity) {
             userSetOpacity = opacity;
@@ -133,6 +139,9 @@ try {
         });
         ipcMain.on('minimize-window', function () {
             mainWindow.minimize();
+        });
+        ipcMain.on('close-window', function () {
+            mainWindow.close();
         });
         ipcMain.on('set-ignore-mouse-events', function (_, ignore, options) {
             mainWindow.setIgnoreMouseEvents(ignore, options);
@@ -180,4 +189,3 @@ catch (error) {
     console.error('Failed to load database module:', error);
     app.quit();
 }
-var _c = require(databasePath), dbSaveNote = _c.saveNote, dbGetNote = _c.getNote;

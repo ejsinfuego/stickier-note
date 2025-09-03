@@ -19,13 +19,13 @@
   },
   "scripts": {
     "clean": "rimraf dist dist-electron",
-    "dev": "tsc main.ts database.ts --outDir dist-electron && concurrently \"vite\" \"wait-on http://localhost:5173 && electron .\"",
-    "build": "npm run clean && tsc --project tsconfig.json && tsc main.ts database.ts --outDir dist-electron && vite build",
-    "build:optimized": "npm run build && node optimize-build.js",
+    "dev": "tsc main.ts database.ts --outDir dist-electron && node build.js && concurrently \"wait-on dist/index.html && electron .\"",
+    "build": "npm run clean && tsc main.ts database.ts --outDir dist-electron && node build.js",
+    "build:optimized": "npm run build",
     "lint": "eslint .",
-    "preview": "vite preview",
+    "preview": "node build.js && electron .",
     "package": "npm run build:optimized && electron-builder",
-    "package:mac": "npm run build:optimized && electron-builder --mac",
+    "package:mac": "npm run build:optimized && electron-builder --mac --publish never",
     "package:win": "npm run build:optimized && electron-builder --win",
     "package:linux": "npm run build:optimized && electron-builder --linux",
     "package:all": "npm run build:optimized && electron-builder -mwl",
@@ -125,8 +125,12 @@
           ]
         }
       ],
+      "artifactName": "Stickier-Note-${version}.${ext}",
       "icon": "src/assets/note.icns",
       "category": "public.app-category.productivity"
+    },
+    "dmg": {
+      "format": "ULFO"
     },
     "win": {
       "target": [
@@ -169,30 +173,17 @@
   },
   "dependencies": {
     "mkdirp": "^0.5.5",
-    "nedb": "^1.8.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "nedb": "^1.8.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.21.0",
     "@types/electron": "^1.6.12",
-    "@types/react": "^19.0.10",
-    "@types/react-dom": "^19.0.4",
-    "@types/uuid": "^10.0.0",
-    "@vitejs/plugin-react": "^4.3.4",
-    "autoprefixer": "^10.4.21",
     "concurrently": "^9.1.2",
     "electron-builder": "^26.0.12",
     "eslint": "^9.21.0",
-    "eslint-plugin-react-hooks": "^5.1.0",
-    "eslint-plugin-react-refresh": "^0.4.19",
     "globals": "^15.15.0",
-    "postcss": "^8.5.3",
-    "tailwindcss": "^4.1.1",
+    "rimraf": "^5.0.5",
     "terser": "^5.39.0",
     "typescript": "~5.7.2",
-    "typescript-eslint": "^8.24.1",
-    "vite": "^6.2.0",
     "wait-on": "^8.0.3"
   }
 }
