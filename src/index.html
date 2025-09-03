@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stickier Note</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="note-container" id="noteContainer">
+        <div class="note-header" id="noteHeader">
+            <div class="header-controls">
+                <div class="toolbar toolbar-header">
+                    <button class="tool-btn" id="boldBtn" title="Bold">B</button>
+                    <button class="tool-btn" id="italicBtn" title="Italic">I</button>
+                    <button class="tool-btn" id="checkboxBtn" title="Add Checkbox">☑</button>
+                    <select class="font-size-select" id="fontSizeSelect">
+                        <option value="12">12</option>
+                        <option value="14" selected>14</option>
+                        <option value="16">16</option>
+                        <option value="18">18</option>
+                        <option value="20">20</option>
+                    </select>
+                    <button class="tool-btn color-icon" id="noteColorBtn" title="Note color">🗒️</button>
+                    <input type="color" id="noteColorPicker" value="#FFFF88" class="hidden-color-input" aria-hidden="true" />
+                    <button class="tool-btn color-icon" id="textColorBtn" title="Text color">A</button>
+                    <input type="color" id="textColorPicker" value="#000000" class="hidden-color-input" aria-hidden="true" />
+                </div>
+                <div class="drag-spacer"></div>
+                <div class="minimize-close-container">
+                    <button class="control-btn" id="minimizeBtn" title="Minimize">−</button>
+                    <button class="control-btn" id="closeBtn" title="Close">×</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="note-content">
+            <div class="editor-container">
+                <div class="editor" id="editor" contenteditable="true" spellcheck="false">
+                    Start typing your note here...
+                </div>
+            </div>
+        </div>
+        
+    </div>
+    
+    <script src="app.js"></script>
+</body>
+</html>
