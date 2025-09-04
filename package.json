@@ -1,7 +1,7 @@
 {
   "name": "stickier-note",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "main": "dist-electron/main.js",
   "types": "./index.d.ts",
   "description": "A minimal sticky note application that's like stickier",
@@ -25,7 +25,7 @@
     "lint": "eslint .",
     "preview": "node build.js && electron .",
     "package": "npm run build:optimized && electron-builder",
-    "package:mac": "npm run build:optimized && electron-builder --mac --publish never",
+    "package:mac": "npm run build:optimized && electron-builder --mac --publish never && node remove-languages.js",
     "package:win": "npm run build:optimized && electron-builder --win",
     "package:linux": "npm run build:optimized && electron-builder --linux",
     "package:all": "npm run build:optimized && electron-builder -mwl",
@@ -33,6 +33,18 @@
   },
   "asar": true,
   "compression": "maximum",
+  "asarUnpack": [],
+  "forceCodeSigning": false,
+  "removePackageScripts": true,
+  "removePackageKeywords": true,
+  "removePackageAuthor": true,
+  "removePackageDescription": true,
+  "removePackageHomepage": true,
+  "removePackageLicense": true,
+  "removePackageRepository": true,
+  "electronLanguages": [
+    "en"
+  ],
   "build": {
     "appId": "com.example.stickier-note",
     "copyright": "Copyright 2025 Ej Sinfuego",
@@ -41,15 +53,7 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "package.json",
-      "node_modules/nedb/**/*",
-      "node_modules/binary-search-tree/**/*",
-      "node_modules/immediate/**/*",
-      "node_modules/underscore/**/*",
-      "node_modules/mkdirp/**/*",
-      "node_modules/minimist/**/*",
-      "node_modules/async/**/*",
-      "node_modules/localforage/**/*"
+      "package.json"
     ],
     "extraResources": [
       {
@@ -59,51 +63,13 @@
       {
         "from": "dist-electron/database.js",
         "to": "database.cjs"
-      },
-      {
-        "from": "node_modules/nedb",
-        "to": "node_modules/nedb"
-      },
-      {
-        "from": "node_modules/binary-search-tree",
-        "to": "node_modules/binary-search-tree"
-      },
-      {
-        "from": "node_modules/underscore",
-        "to": "node_modules/underscore"
-      },
-      {
-        "from": "node_modules/async",
-        "to": "node_modules/async"
-      },
-      {
-        "from": "node_modules/mkdirp",
-        "to": "node_modules/mkdirp"
-      },
-      {
-        "from": "node_modules/minimist",
-        "to": "node_modules/minimist"
-      },
-      {
-        "from": "node_modules/immediate",
-        "to": "node_modules/immediate"
-      },
-      {
-        "from": "node_modules/localforage",
-        "to": "node_modules/localforage"
       }
     ],
-    "asarUnpack": [
-      "node_modules/nedb/**/*",
-      "node_modules/underscore/**/*",
-      "node_modules/async/**/*",
-      "node_modules/binary-search-tree/**/*", 
-      "node_modules/mkdirp/**/*",
-      "node_modules/minimist/**/*"
-    ],
+    "asarUnpack": [],
     "npmRebuild": false,
     "nodeGypRebuild": false,
     "buildDependenciesFromSource": false,
+    "electronVersion": "11.5.0",
     "publish": {
       "provider": "github",
       "owner": "ejsinfuego",
@@ -112,7 +78,6 @@
       "private": false
     },
     "directories": {
-      "buildResources": "src/assets",
       "output": "dist"
     },
     "mac": {
@@ -120,8 +85,7 @@
         {
           "target": "dmg",
           "arch": [
-            "x64",
-            "arm64"
+            "x64"
           ]
         }
       ],
@@ -129,9 +93,7 @@
       "icon": "src/assets/note.icns",
       "category": "public.app-category.productivity"
     },
-    "dmg": {
-      "format": "ULFO"
-    },
+    "dmg": {},
     "win": {
       "target": [
         {
@@ -171,13 +133,10 @@
       "compression": "maximum"
     }
   },
-  "dependencies": {
-    "mkdirp": "^0.5.5",
-    "nedb": "^1.8.0"
-  },
   "devDependencies": {
     "@types/electron": "^1.6.12",
     "concurrently": "^9.1.2",
+    "electron": "^11.5.0",
     "electron-builder": "^26.0.12",
     "eslint": "^9.21.0",
     "globals": "^15.15.0",
