@@ -53,7 +53,8 @@
     "files": [
       "dist/**/*",
       "dist-electron/**/*",
-      "package.json"
+      "package.json",
+      "node_modules/nedb/**/*"
     ],
     "extraResources": [
       {
@@ -144,5 +145,8 @@
     "terser": "^5.39.0",
     "typescript": "~5.7.2",
     "wait-on": "^8.0.3"
+  },
+  "dependencies": {
+    "nedb": "^1.8.0"
   }
 }

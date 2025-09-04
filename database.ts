@@ -37,7 +37,7 @@ try {
           break;
         }
       } catch (err) {
-        console.log(`Failed to load from ${modulePath}:`, err.message);
+        console.log(`Failed to load from ${modulePath}:`, (err as Error).message);
       }
     }
     
@@ -49,6 +49,7 @@ try {
     throw innerError;
   }
 }
+
 
 const dbDir = elect.getPath('userData'); 
 const dbPath = path2.join(dbDir, 'stickier-notes.db');
@@ -160,7 +161,6 @@ function updateNote(id: string, updates: Partial<{ title: string; content: strin
 // di pa kelangan pero lagat na rin natin for the future
 function deleteNote(id: string) {
   return new Promise((resolve, reject) => {
-   
     // @ts-ignore
     db.remove({ id }, {}, (err, numRemoved) => {
       if (err) reject(err);
@@ -169,6 +169,7 @@ function deleteNote(id: string) {
   });
 }
 
+//export functions
 module.exports = {
   saveNote,
   addNote,
