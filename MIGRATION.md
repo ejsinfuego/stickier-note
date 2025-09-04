@@ -71,3 +71,4 @@ npm run package:linux  # Linux
 4. **Easier debugging** - Direct HTML/CSS/JS
 5. **Better performance** - No virtual DOM overhead
 6. **Smaller dependencies** - Fewer packages to maintain
+

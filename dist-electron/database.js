@@ -180,6 +180,7 @@ function deleteNote(id) {
         });
     });
 }
+//export functions
 module.exports = {
     saveNote: saveNote,
     addNote: addNote,
