@@ -29,6 +29,8 @@ body {
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
   overflow: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* Hides scrollbar in Internet Explorer and Edge */
 }
 
 .note-container:hover {
@@ -50,7 +52,9 @@ body {
   padding: 20px 5px 20px 5px;
   cursor: move;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .minimize-close-container {
@@ -141,6 +145,8 @@ body {
   display: flex;
   flex-direction: column;
   gap: 16px;
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* Hides scrollbar in Internet Explorer and Edge */
 }
 
 .toolbar {
@@ -247,10 +253,12 @@ body {
   border: none;
   border-radius: 0;
   background: transparent;
-  overflow: auto;
+  overflow: hidden;
   box-shadow: none;
   backdrop-filter: none;
   width: 100%;
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* Hides scrollbar in Internet Explorer and Edge */
 }
 
 .editor {
@@ -264,6 +272,8 @@ body {
   color: #000000;
   user-select: text;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  scrollbar-width: none;
+  -ms-overflow-style: none; /* Hides scrollbar in Internet Explorer and Edge */
 }
 
 /* Remove placeholder to avoid input-field appearance */
@@ -332,23 +342,45 @@ body {
   transform: scale(1.1);
 }
 
-/* Scrollbar styling */
+/* Show scrollbar only when scrolling or hovering */
+.note-container::-webkit-scrollbar,
+.note-content::-webkit-scrollbar,
+.editor-container::-webkit-scrollbar,
 .editor::-webkit-scrollbar {
-  width: 8px;
+  width: 5px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
 }
 
+.note-container::-webkit-scrollbar-track,
+.note-content::-webkit-scrollbar-track,
+.editor-container::-webkit-scrollbar-track,
 .editor::-webkit-scrollbar-track {
   background: transparent;
 }
 
+.note-container::-webkit-scrollbar-thumb,
+.note-content::-webkit-scrollbar-thumb,
+.editor-container::-webkit-scrollbar-thumb,
 .editor::-webkit-scrollbar-thumb {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.2);
   border-radius: 4px;
   transition: background 0.2s ease;
 }
 
-.editor::-webkit-scrollbar-thumb:hover {
-  background: rgba(0, 0, 0, 0.25);
+/* Show scrollbar on hover */
+.note-container:hover::-webkit-scrollbar,
+.note-content:hover::-webkit-scrollbar,
+.editor-container:hover::-webkit-scrollbar,
+.editor:hover::-webkit-scrollbar {
+  opacity: 0.5;
+}
+
+.note-container:hover::-webkit-scrollbar-thumb,
+.note-content:hover::-webkit-scrollbar-thumb,
+.editor-container:hover::-webkit-scrollbar-thumb,
+.editor:hover::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.3);
 }
 
 /* Text selection */
