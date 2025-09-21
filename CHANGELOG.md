@@ -1,5 +1,19 @@
 # CHANGELOG
 
+## 🎉 **v1.0.4 - The UI Enhancement Release** - 2025-01-27
+
+**🎯 UI Improvements: Enhanced sticky toolbar and scrollbar functionality**
+
+### 🚀 Major Changes
+- **Sticky Toolbar Fix**: Improved sticky toolbar behavior for better user experience
+- **Scrollbar Enhancement**: Enhanced scrollbar functionality and visual appearance
+
+### 🐛 Bug Fixes
+- **Toolbar Positioning**: Fixed sticky toolbar positioning issues
+- **Scrollbar Styling**: Improved scrollbar styling and interaction
+
+---
+
 ## 🎉 **v1.0.3 - The Size Optimization Release** - 2025-01-27
 
 **🎯 MASSIVE ACHIEVEMENT: Reduced app size from 1.57GB to 149MB (90% reduction!)**
